@@ -33,5 +33,3 @@ The project captures key aspects of a real-world car rental business, including 
 - Test Data & Thorough Testing: Populate the database with test data
 - Documentation: Do the documentation
 - Views & Stored Procedures: Implement views and procedures for common operations
-
-<img src="https://github.com/github/explore/raw/main/topics/github/github.png" alt=" " height="50">
