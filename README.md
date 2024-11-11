@@ -35,5 +35,3 @@ The project captures key aspects of a real-world car rental business, including 
 - Views & Stored Procedures: Implement views and procedures for common operations
 
 <img src="https://github.com/github/explore/raw/main/topics/github/github.png" alt=" " height="50">
-<img src="https://github.com/github/explore/raw/main/topics/github/github.png" alt=" " height="50">
-
