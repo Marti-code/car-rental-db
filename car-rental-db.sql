@@ -309,6 +309,7 @@ INSERT INTO `feature` VALUES (1, 'klimatyzacja');
 INSERT INTO `feature` VALUES (2, 'ogrzewane siedzenia');
 INSERT INTO `feature` VALUES (6, 'wbudowany GPS');
 INSERT INTO `feature` VALUES (3, 'zaciemnione szyby');
+INSERT INTO `feature` VALUES (8, 'hak na przyczepkę');
 
 -- ----------------------------
 -- Table structure for fueltype
