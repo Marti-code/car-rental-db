@@ -11,7 +11,7 @@
  Target Server Version : 110601 (11.6.1-MariaDB)
  File Encoding         : 65001
 
- Date: 27/11/2024 12:52:36
+ Date: 27/11/2024 22:26:51
 */
 
 SET NAMES utf8mb4;
@@ -224,6 +224,28 @@ INSERT INTO `customer` VALUES (4, 'Oliwer', 'Szeregowy', '2000-07-04', 'AMJ60482
 INSERT INTO `customer` VALUES (5, 'Julian', 'Król', '1993-10-09', 'HFJ52635', '2015-02-19', '2030-03-31', 'abielecka@example.com', '949182002');
 
 -- ----------------------------
+-- Table structure for discount
+-- ----------------------------
+DROP TABLE IF EXISTS `discount`;
+CREATE TABLE `discount`  (
+  `DiscountID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `MinRentalDays` smallint(5) UNSIGNED NOT NULL,
+  `MaxRentalDays` smallint(5) UNSIGNED NULL DEFAULT NULL,
+  `DiscountPercentage` decimal(5, 2) NOT NULL,
+  PRIMARY KEY (`DiscountID`) USING BTREE,
+  CONSTRAINT `CONSTRAINT_1` CHECK (`DiscountPercentage` > 0 and `DiscountPercentage` <= 100),
+  CONSTRAINT `CONSTRAINT_2` CHECK (`MinRentalDays` > 0),
+  CONSTRAINT `CONSTRAINT_3` CHECK (`MaxRentalDays` is null or `MaxRentalDays` >= `MinRentalDays`)
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of discount
+-- ----------------------------
+INSERT INTO `discount` VALUES (1, 5, 9, 5.00);
+INSERT INTO `discount` VALUES (2, 10, 19, 10.00);
+INSERT INTO `discount` VALUES (3, 20, 29, 15.00);
+
+-- ----------------------------
 -- Table structure for employee
 -- ----------------------------
 DROP TABLE IF EXISTS `employee`;
@@ -340,6 +362,20 @@ INSERT INTO `fueltype` VALUES (4, 'hybrydowy');
 DROP TABLE IF EXISTS `invoice`;
 CREATE TABLE `invoice`  (
   `InvoiceID` int(11) NOT NULL AUTO_INCREMENT,
+  `CompanyName` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `CompanyAddressLine1` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `CompanyAddressLine2` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `CompanyCity` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `CompanyState` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `CompanyPostalCode` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `CompanyCountry` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `CustomerName` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `CustomerAddressLine1` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `CustomerAddressLine2` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `CustomerCity` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `CustomerState` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `CustomerPostalCode` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `CustomerCountry` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   `IssueDate` date NOT NULL DEFAULT curdate(),
   `DueDate` date NOT NULL,
   `TotalNetAmount` decimal(8, 2) NULL DEFAULT 0.00,
@@ -359,9 +395,9 @@ CREATE TABLE `invoice`  (
 -- ----------------------------
 -- Records of invoice
 -- ----------------------------
-INSERT INTO `invoice` VALUES (1, '2024-11-07', '2024-11-08', 0.00, 0.00, 0.00, 'Unpaid', 5, NULL, '6871947504');
-INSERT INTO `invoice` VALUES (2, '2024-11-07', '2024-11-07', 0.00, 0.00, 0.00, 'Unpaid', 3, NULL, '8850210863');
-INSERT INTO `invoice` VALUES (3, '2024-11-08', '2024-11-08', 0.00, 0.00, 0.00, 'Unpaid', 1, NULL, NULL);
+INSERT INTO `invoice` VALUES (1, '', '', NULL, '', NULL, '', '', '', '', NULL, '', NULL, '', '', '2024-11-07', '2024-11-08', 0.00, 0.00, 0.00, 'Paid', 5, NULL, '6871947504');
+INSERT INTO `invoice` VALUES (2, '', '', NULL, '', NULL, '', '', '', '', NULL, '', NULL, '', '', '2024-11-07', '2024-11-07', 0.00, 0.00, 0.00, 'Paid', 3, NULL, '8850210863');
+INSERT INTO `invoice` VALUES (3, '', '', NULL, '', NULL, '', '', '', '', NULL, '', NULL, '', '', '2024-11-08', '2024-11-08', 0.00, 0.00, 0.00, 'Paid', 1, NULL, '8850212024');
 
 -- ----------------------------
 -- Table structure for invoiceposition
@@ -432,11 +468,14 @@ CREATE TABLE `payment`  (
   INDEX `FK_Payment_PaymentMethod`(`PaymentMethodID` ASC) USING BTREE,
   CONSTRAINT `FK_Payment_Invoice` FOREIGN KEY (`InvoiceID`) REFERENCES `invoice` (`InvoiceID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `FK_Payment_PaymentMethod` FOREIGN KEY (`PaymentMethodID`) REFERENCES `paymentmethod` (`PaymentMethodID`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of payment
 -- ----------------------------
+INSERT INTO `payment` VALUES (1, '2024-11-07', 0.00, 23.00, 0.00, 'Completed', '123', 1, 3);
+INSERT INTO `payment` VALUES (2, '2024-11-27', 0.00, 23.00, 0.00, 'Pending', '321', 2, 2);
+INSERT INTO `payment` VALUES (3, '2024-11-27', 0.00, 23.00, 0.00, 'Pending', '942', 3, 2);
 
 -- ----------------------------
 -- Table structure for paymentmethod
@@ -723,5 +762,14 @@ INSERT INTO `vehicletype` VALUES (7, 'B', 'Sedan', 5, 350, 'Manual', 1);
 INSERT INTO `vehicletype` VALUES (8, 'C', 'Duży SUV', 7, 600, 'Automatic', 2);
 INSERT INTO `vehicletype` VALUES (9, 'D', 'Luksusowy coupe', 2, 100, 'Automatic', 3);
 INSERT INTO `vehicletype` VALUES (10, 'E', 'Minibus', 9, 700, 'Manual', 5);
+
+-- ----------------------------
+-- Function structure for car_availability
+-- ----------------------------
+DROP FUNCTION IF EXISTS `car_availability`;
+delimiter ;;
+
+;;
+delimiter ;
 
 SET FOREIGN_KEY_CHECKS = 1;
