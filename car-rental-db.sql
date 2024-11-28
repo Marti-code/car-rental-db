@@ -11,7 +11,7 @@
  Target Server Version : 110601 (11.6.1-MariaDB)
  File Encoding         : 65001
 
- Date: 28/11/2024 16:22:53
+ Date: 28/11/2024 21:14:54
 */
 
 SET NAMES utf8mb4;
@@ -291,8 +291,8 @@ CREATE TABLE `employeerole`  (
   `RoleID` tinyint(3) UNSIGNED NOT NULL,
   PRIMARY KEY (`EmployeeID`, `RoleID`) USING BTREE,
   INDEX `FK_EmployeeRole_Role`(`RoleID` ASC) USING BTREE,
-  CONSTRAINT `FK_EmployeeRole_Role` FOREIGN KEY (`RoleID`) REFERENCES `role` (`RoleID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `FK_EmployeeRole_Employee` FOREIGN KEY (`EmployeeID`) REFERENCES `employee` (`EmployeeID`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `FK_EmployeeRole_Employee` FOREIGN KEY (`EmployeeID`) REFERENCES `employee` (`EmployeeID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `FK_EmployeeRole_Role` FOREIGN KEY (`RoleID`) REFERENCES `role` (`RoleID`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -602,7 +602,7 @@ INSERT INTO `rentalcustomer` VALUES (1, 1);
 DROP TABLE IF EXISTS `reservation`;
 CREATE TABLE `reservation`  (
   `ReservationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `ReservationDate` date NOT NULL DEFAULT curdate(),
+  `ReservationDate` timestamp NOT NULL DEFAULT curdate(),
   `PickupDate` date NOT NULL,
   `ReturnDate` date NOT NULL,
   `ReservationStatus` enum('Active','Cancelled','Completed') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT 'Active',
@@ -615,11 +615,11 @@ CREATE TABLE `reservation`  (
 -- ----------------------------
 -- Records of reservation
 -- ----------------------------
-INSERT INTO `reservation` VALUES (1, '2024-10-31', '2024-11-04', '2024-11-08', 'Active', 1);
-INSERT INTO `reservation` VALUES (2, '2024-11-07', '2024-12-01', '2024-12-31', 'Active', 2);
-INSERT INTO `reservation` VALUES (3, '2024-11-07', '2024-11-11', '2024-11-13', 'Active', 4);
-INSERT INTO `reservation` VALUES (4, '2024-09-02', '2024-09-05', '2024-09-07', 'Completed', 5);
-INSERT INTO `reservation` VALUES (5, '2024-01-01', '2025-01-15', '2025-01-30', 'Completed', 3);
+INSERT INTO `reservation` VALUES (1, '2024-10-31 00:00:00', '2024-11-04', '2024-11-08', 'Active', 1);
+INSERT INTO `reservation` VALUES (2, '2024-11-07 00:00:00', '2024-12-01', '2024-12-31', 'Active', 2);
+INSERT INTO `reservation` VALUES (3, '2024-11-07 00:00:00', '2024-11-11', '2024-11-13', 'Active', 4);
+INSERT INTO `reservation` VALUES (4, '2024-09-02 00:00:00', '2024-09-05', '2024-09-07', 'Completed', 5);
+INSERT INTO `reservation` VALUES (5, '2024-01-01 00:00:00', '2025-01-15', '2025-01-30', 'Completed', 3);
 
 -- ----------------------------
 -- Table structure for reservationcar
@@ -765,11 +765,88 @@ INSERT INTO `vehicletype` VALUES (9, 'D', 'Luksusowy coupe', 2, 100, 'Automatic'
 INSERT INTO `vehicletype` VALUES (10, 'E', 'Minibus', 9, 700, 'Manual', 5);
 
 -- ----------------------------
--- Function structure for car_availability
+-- View structure for v_ActiveReservations
 -- ----------------------------
-DROP FUNCTION IF EXISTS `car_availability`;
+DROP VIEW IF EXISTS `v_ActiveReservations`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_ActiveReservations` AS select `res`.`ReservationID` AS `ReservationID`,`res`.`ReservationDate` AS `ReservationDate`,`res`.`PickupDate` AS `PickupDate`,`res`.`ReturnDate` AS `ReturnDate`,`c`.`CustomerID` AS `CustomerID`,`c`.`FirstName` AS `FirstName`,`c`.`LastName` AS `LastName`,`c`.`Email` AS `Email`,`rc`.`CarID` AS `CarID`,`car`.`Make` AS `Make`,`car`.`Model` AS `Model`,`car`.`LicensePlateNumber` AS `LicensePlateNumber` from (((`reservation` `res` join `customer` `c` on(`res`.`CustomerID` = `c`.`CustomerID`)) join `reservationcar` `rc` on(`res`.`ReservationID` = `rc`.`ReservationID`)) join `car` on(`rc`.`CarID` = `car`.`CarID`)) where `res`.`ReservationStatus` = 'Active' and `res`.`PickupDate` >= curdate() order by `res`.`PickupDate`;
+
+-- ----------------------------
+-- View structure for v_AvailableCars
+-- ----------------------------
+DROP VIEW IF EXISTS `v_AvailableCars`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_AvailableCars` AS select `c`.`CarID` AS `CarID`,`c`.`LicensePlateNumber` AS `LicensePlateNumber`,`c`.`Make` AS `Make`,`c`.`Model` AS `Model`,`c`.`Year` AS `Year`,`c`.`Color` AS `Color`,`c`.`DailyRate` AS `DailyRate`,`vt`.`Category` AS `VehicleCategory`,`vt`.`TransmissionType` AS `TransmissionType`,group_concat(distinct `f`.`FeatureName` separator ', ') AS `Features`,group_concat(distinct `a`.`AmenityName` separator ', ') AS `Amenities` from (((((`car` `c` join `vehicletype` `vt` on(`c`.`VehicleTypeID` = `vt`.`VehicleTypeID`)) left join `carfeature` `cf` on(`c`.`CarID` = `cf`.`CarID`)) left join `feature` `f` on(`cf`.`FeatureID` = `f`.`FeatureID`)) left join `caramenity` `ca` on(`c`.`CarID` = `ca`.`CarID`)) left join `amenity` `a` on(`ca`.`AmenityID` = `a`.`AmenityID`)) where `c`.`CarStatus` = 'Available' group by `c`.`CarID`;
+
+-- ----------------------------
+-- View structure for v_CarUtilityStats
+-- ----------------------------
+DROP VIEW IF EXISTS `v_CarUtilityStats`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_CarUtilityStats` AS select `car`.`CarID` AS `CarID`,`car`.`LicensePlateNumber` AS `LicensePlateNumber`,`car`.`Make` AS `Make`,`car`.`Model` AS `Model`,sum(`rc`.`RentalDuration`) AS `TotalRentalDays`,sum(`rc`.`DailyRateApplied` * `rc`.`RentalDuration`) AS `TotalRevenue` from (`car` left join `rentalcar` `rc` on(`car`.`CarID` = `rc`.`CarID`)) group by `car`.`CarID`;
+
+-- ----------------------------
+-- View structure for v_PopularCars
+-- ----------------------------
+DROP VIEW IF EXISTS `v_PopularCars`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_PopularCars` AS select `car`.`CarID` AS `CarID`,`car`.`LicensePlateNumber` AS `LicensePlateNumber`,`car`.`Make` AS `Make`,`car`.`Model` AS `Model`,count(`rentalcar`.`RentalID`) AS `TimesRented` from (`car` left join `rentalcar` on(`car`.`CarID` = `rentalcar`.`CarID`)) group by `car`.`CarID` order by count(`rentalcar`.`RentalID`) desc;
+
+-- ----------------------------
+-- View structure for v_RevenueByMonth
+-- ----------------------------
+DROP VIEW IF EXISTS `v_RevenueByMonth`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_RevenueByMonth` AS select year(`r`.`RentalDate`) AS `Year`,month(`r`.`RentalDate`) AS `Month`,sum(`r`.`TotalGrossAmount`) AS `TotalRevenue` from `rental` `r` group by year(`r`.`RentalDate`),month(`r`.`RentalDate`) order by year(`r`.`RentalDate`) desc,month(`r`.`RentalDate`) desc;
+
+-- ----------------------------
+-- View structure for v_UpcomingReservations
+-- ----------------------------
+DROP VIEW IF EXISTS `v_UpcomingReservations`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_UpcomingReservations` AS select `res`.`ReservationID` AS `ReservationID`,`res`.`ReservationDate` AS `ReservationDate`,`res`.`PickupDate` AS `PickupDate`,`res`.`ReturnDate` AS `ReturnDate`,`c`.`CustomerID` AS `CustomerID`,`c`.`FirstName` AS `CustomerFirstName`,`c`.`LastName` AS `CustomerLastName`,`c`.`Email` AS `CustomerEmail`,`car`.`CarID` AS `CarID`,`car`.`LicensePlateNumber` AS `LicensePlateNumber`,`car`.`Make` AS `Make`,`car`.`Model` AS `Model` from (((`reservation` `res` join `customer` `c` on(`res`.`CustomerID` = `c`.`CustomerID`)) join `reservationcar` `rc` on(`res`.`ReservationID` = `rc`.`ReservationID`)) join `car` on(`rc`.`CarID` = `car`.`CarID`)) where `res`.`PickupDate` between curdate() and curdate() + interval 7 day and `res`.`ReservationStatus` = 'Active' order by `res`.`PickupDate`;
+
+-- ----------------------------
+-- Procedure structure for AddCustomer
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `AddCustomer`;
 delimiter ;;
 
+;;
+delimiter ;
+
+-- ----------------------------
+-- Procedure structure for AddReservation
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `AddReservation`;
+delimiter ;;
+
+;;
+delimiter ;
+
+-- ----------------------------
+-- Function structure for CalculateDiscountAmount
+-- ----------------------------
+DROP FUNCTION IF EXISTS `CalculateDiscountAmount`;
+delimiter ;;
+CREATE DEFINER=`huza_martyna`@`%` FUNCTION `CalculateDiscountAmount`(RentalStartDate DATE,
+    ExpectedReturnDate DATE,
+    TotalNetAmount DECIMAL(8,2)
+) RETURNS decimal(7,2)
+    DETERMINISTIC
+BEGIN
+    DECLARE RentalDays INT;
+    DECLARE DiscountAmount DECIMAL(5,2) DEFAULT 0.00;
+
+    SET RentalDays = DATEDIFF(ExpectedReturnDate, RentalStartDate) + 1;
+
+    SELECT DiscountPercentage INTO DiscountAmount
+    FROM discount
+    WHERE RentalDays BETWEEN MinRentalDays AND MaxRentalDays
+    OR (MaxRentalDays IS NULL AND MinRentalDays <= RentalDays)
+    ORDER BY MinRentalDays DESC
+    LIMIT 1;
+
+    IF DiscountAmount IS NULL THEN
+        SET DiscountAmount = 0.00;
+    END IF;
+
+    RETURN ROUND(TotalNetAmount * DiscountAmount / 100, 2);
+END
 ;;
 delimiter ;
 
