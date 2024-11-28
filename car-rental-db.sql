@@ -11,7 +11,7 @@
  Target Server Version : 110601 (11.6.1-MariaDB)
  File Encoding         : 65001
 
- Date: 27/11/2024 22:26:51
+ Date: 28/11/2024 16:22:53
 */
 
 SET NAMES utf8mb4;
@@ -22,7 +22,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ----------------------------
 DROP TABLE IF EXISTS `amenity`;
 CREATE TABLE `amenity`  (
-  `AmenityID` int(4) NOT NULL AUTO_INCREMENT,
+  `AmenityID` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT,
   `AmenityName` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   `AmenityPrice` decimal(7, 2) NOT NULL DEFAULT 0.00,
   PRIMARY KEY (`AmenityID`) USING BTREE,
@@ -42,7 +42,7 @@ INSERT INTO `amenity` VALUES (4, 'uchwyt na rowery', 15.00);
 -- ----------------------------
 DROP TABLE IF EXISTS `car`;
 CREATE TABLE `car`  (
-  `CarID` int(11) NOT NULL AUTO_INCREMENT,
+  `CarID` mediumint(8) UNSIGNED NOT NULL AUTO_INCREMENT,
   `LicensePlateNumber` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   `VIN` varchar(17) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   `Make` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
@@ -51,8 +51,8 @@ CREATE TABLE `car`  (
   `Color` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
   `Mileage` mediumint(8) UNSIGNED NULL DEFAULT NULL,
   `CarStatus` enum('Available','Rented','Under Maintenance') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT 'Available',
-  `VehicleTypeID` int(11) NOT NULL,
-  `FuelTypeID` int(11) NOT NULL,
+  `VehicleTypeID` smallint(5) UNSIGNED NOT NULL,
+  `FuelTypeID` tinyint(3) UNSIGNED NOT NULL,
   `OC_DueDate` date NULL DEFAULT NULL,
   `AC_DueDate` date NULL DEFAULT NULL,
   `CanGoAbroad` enum('Tak','Nie') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT 'Tak',
@@ -95,8 +95,8 @@ INSERT INTO `car` VALUES (20, 'WAW60606', '1HGCM82633A606060', 'Audi', 'Q5', 201
 -- ----------------------------
 DROP TABLE IF EXISTS `caramenity`;
 CREATE TABLE `caramenity`  (
-  `CarID` int(11) NOT NULL,
-  `AmenityID` int(11) NOT NULL,
+  `CarID` mediumint(8) UNSIGNED NOT NULL,
+  `AmenityID` smallint(5) UNSIGNED NOT NULL,
   PRIMARY KEY (`CarID`, `AmenityID`) USING BTREE,
   INDEX `FK_CarAmenity_Amenity`(`AmenityID` ASC) USING BTREE,
   CONSTRAINT `FK_CarAmenity_Amenity` FOREIGN KEY (`AmenityID`) REFERENCES `amenity` (`AmenityID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
@@ -133,8 +133,8 @@ INSERT INTO `caramenity` VALUES (12, 4);
 -- ----------------------------
 DROP TABLE IF EXISTS `carfeature`;
 CREATE TABLE `carfeature`  (
-  `CarID` int(11) NOT NULL,
-  `FeatureID` int(11) NOT NULL,
+  `CarID` mediumint(8) UNSIGNED NOT NULL,
+  `FeatureID` smallint(5) UNSIGNED NOT NULL,
   PRIMARY KEY (`CarID`, `FeatureID`) USING BTREE,
   INDEX `FeatureID`(`FeatureID` ASC) USING BTREE,
   CONSTRAINT `carfeature_ibfk_1` FOREIGN KEY (`CarID`) REFERENCES `car` (`CarID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
@@ -201,7 +201,7 @@ INSERT INTO `carfeature` VALUES (16, 7);
 -- ----------------------------
 DROP TABLE IF EXISTS `customer`;
 CREATE TABLE `customer`  (
-  `CustomerID` int(11) NOT NULL AUTO_INCREMENT,
+  `CustomerID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `FirstName` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   `LastName` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   `DateOfBirth` date NOT NULL,
@@ -236,7 +236,7 @@ CREATE TABLE `discount`  (
   CONSTRAINT `CONSTRAINT_1` CHECK (`DiscountPercentage` > 0 and `DiscountPercentage` <= 100),
   CONSTRAINT `CONSTRAINT_2` CHECK (`MinRentalDays` > 0),
   CONSTRAINT `CONSTRAINT_3` CHECK (`MaxRentalDays` is null or `MaxRentalDays` >= `MinRentalDays`)
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of discount
@@ -244,6 +244,7 @@ CREATE TABLE `discount`  (
 INSERT INTO `discount` VALUES (1, 5, 9, 5.00);
 INSERT INTO `discount` VALUES (2, 10, 19, 10.00);
 INSERT INTO `discount` VALUES (3, 20, 29, 15.00);
+INSERT INTO `discount` VALUES (4, 30, NULL, 20.00);
 
 -- ----------------------------
 -- Table structure for employee
@@ -287,11 +288,11 @@ INSERT INTO `employee` VALUES (15, 'Bartek', 'Górski', 'bartek.gorski@example.c
 DROP TABLE IF EXISTS `employeerole`;
 CREATE TABLE `employeerole`  (
   `EmployeeID` int(11) NOT NULL,
-  `RoleID` int(11) NOT NULL,
+  `RoleID` tinyint(3) UNSIGNED NOT NULL,
   PRIMARY KEY (`EmployeeID`, `RoleID`) USING BTREE,
   INDEX `FK_EmployeeRole_Role`(`RoleID` ASC) USING BTREE,
-  CONSTRAINT `FK_EmployeeRole_Employee` FOREIGN KEY (`EmployeeID`) REFERENCES `employee` (`EmployeeID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT `FK_EmployeeRole_Role` FOREIGN KEY (`RoleID`) REFERENCES `role` (`RoleID`) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT `FK_EmployeeRole_Role` FOREIGN KEY (`RoleID`) REFERENCES `role` (`RoleID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `FK_EmployeeRole_Employee` FOREIGN KEY (`EmployeeID`) REFERENCES `employee` (`EmployeeID`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -318,7 +319,7 @@ INSERT INTO `employeerole` VALUES (1, 6);
 -- ----------------------------
 DROP TABLE IF EXISTS `feature`;
 CREATE TABLE `feature`  (
-  `FeatureID` int(11) NOT NULL AUTO_INCREMENT,
+  `FeatureID` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT,
   `FeatureName` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   PRIMARY KEY (`FeatureID`) USING BTREE,
   UNIQUE INDEX `FeatureName`(`FeatureName` ASC) USING BTREE
@@ -341,7 +342,7 @@ INSERT INTO `feature` VALUES (3, 'zaciemnione szyby');
 -- ----------------------------
 DROP TABLE IF EXISTS `fueltype`;
 CREATE TABLE `fueltype`  (
-  `FuelTypeID` int(11) NOT NULL AUTO_INCREMENT,
+  `FuelTypeID` tinyint(3) UNSIGNED NOT NULL AUTO_INCREMENT,
   `FuelTypeName` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   PRIMARY KEY (`FuelTypeID`) USING BTREE,
   UNIQUE INDEX `FuelTypeName`(`FuelTypeName` ASC) USING BTREE
@@ -361,7 +362,7 @@ INSERT INTO `fueltype` VALUES (4, 'hybrydowy');
 -- ----------------------------
 DROP TABLE IF EXISTS `invoice`;
 CREATE TABLE `invoice`  (
-  `InvoiceID` int(11) NOT NULL AUTO_INCREMENT,
+  `InvoiceID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `CompanyName` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   `CompanyAddressLine1` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   `CompanyAddressLine2` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
@@ -382,7 +383,7 @@ CREATE TABLE `invoice`  (
   `TotalVAT` decimal(7, 2) NULL DEFAULT 0.00,
   `TotalGrossAmount` decimal(8, 2) NULL DEFAULT 0.00,
   `InvoiceStatus` enum('Paid','Unpaid') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT 'Unpaid',
-  `CustomerID` int(11) NOT NULL,
+  `CustomerID` int(10) UNSIGNED NOT NULL,
   `EmployeeID` int(11) NULL DEFAULT NULL,
   `NIP` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
   PRIMARY KEY (`InvoiceID`) USING BTREE,
@@ -405,7 +406,7 @@ INSERT INTO `invoice` VALUES (3, '', '', NULL, '', NULL, '', '', '', '', NULL, '
 DROP TABLE IF EXISTS `invoiceposition`;
 CREATE TABLE `invoiceposition`  (
   `InvoicePositionID` int(11) NOT NULL AUTO_INCREMENT,
-  `InvoiceID` int(11) NOT NULL,
+  `InvoiceID` int(10) UNSIGNED NOT NULL,
   `Description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   `Quantity` int(11) NOT NULL,
   `UnitNetPrice` decimal(8, 2) NOT NULL,
@@ -428,7 +429,7 @@ CREATE TABLE `invoiceposition`  (
 DROP TABLE IF EXISTS `maintenance`;
 CREATE TABLE `maintenance`  (
   `MaintenanceID` int(11) NOT NULL AUTO_INCREMENT,
-  `CarID` int(11) NOT NULL,
+  `CarID` mediumint(8) UNSIGNED NOT NULL,
   `EmployeeID` int(11) NOT NULL,
   `MaintenanceDate` date NOT NULL DEFAULT curdate(),
   `Description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
@@ -461,8 +462,8 @@ CREATE TABLE `payment`  (
   `AmountGross` decimal(8, 2) NOT NULL,
   `PaymentStatus` enum('Completed','Pending','Failed') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT 'Pending',
   `TransactionID` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
-  `InvoiceID` int(11) NOT NULL,
-  `PaymentMethodID` int(11) NOT NULL,
+  `InvoiceID` int(10) UNSIGNED NOT NULL,
+  `PaymentMethodID` tinyint(3) UNSIGNED NOT NULL,
   PRIMARY KEY (`PaymentID`) USING BTREE,
   INDEX `FK_Payment_Invoice`(`InvoiceID` ASC) USING BTREE,
   INDEX `FK_Payment_PaymentMethod`(`PaymentMethodID` ASC) USING BTREE,
@@ -482,7 +483,7 @@ INSERT INTO `payment` VALUES (3, '2024-11-27', 0.00, 23.00, 0.00, 'Pending', '94
 -- ----------------------------
 DROP TABLE IF EXISTS `paymentmethod`;
 CREATE TABLE `paymentmethod`  (
-  `PaymentMethodID` int(11) NOT NULL AUTO_INCREMENT,
+  `PaymentMethodID` tinyint(3) UNSIGNED NOT NULL AUTO_INCREMENT,
   `MethodName` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (`PaymentMethodID`) USING BTREE,
   UNIQUE INDEX `MethodName`(`MethodName` ASC) USING BTREE
@@ -500,7 +501,7 @@ INSERT INTO `paymentmethod` VALUES (2, 'karta');
 -- ----------------------------
 DROP TABLE IF EXISTS `permission`;
 CREATE TABLE `permission`  (
-  `PermissionID` int(11) NOT NULL AUTO_INCREMENT,
+  `PermissionID` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT,
   `PermissionName` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   PRIMARY KEY (`PermissionID`) USING BTREE,
   UNIQUE INDEX `PermissionName`(`PermissionName` ASC) USING BTREE
@@ -529,16 +530,16 @@ INSERT INTO `permission` VALUES (1, 'Zarządzanie rezerwacjami');
 -- ----------------------------
 DROP TABLE IF EXISTS `rental`;
 CREATE TABLE `rental`  (
-  `RentalID` int(11) NOT NULL AUTO_INCREMENT,
+  `RentalID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `RentalDate` date NOT NULL DEFAULT curdate(),
   `ExpectedReturnDate` date NOT NULL,
   `ActualReturnDate` date NULL DEFAULT NULL,
-  `DiscountApplied` decimal(7, 2) NULL DEFAULT 0.00,
   `TotalNetAmount` decimal(8, 2) NULL DEFAULT 0.00,
   `TotalVAT` decimal(7, 2) NULL DEFAULT 0.00,
   `TotalGrossAmount` decimal(8, 2) NULL DEFAULT 0.00,
-  `InvoiceID` int(11) NULL DEFAULT NULL,
-  `ReservationID` int(11) NULL DEFAULT NULL,
+  `InvoiceID` int(10) UNSIGNED NULL DEFAULT NULL,
+  `ReservationID` int(10) UNSIGNED NULL DEFAULT NULL,
+  `DiscountApplied` decimal(7, 2) UNSIGNED NULL DEFAULT 0.00,
   `Fine` decimal(7, 2) NOT NULL DEFAULT 0.00,
   PRIMARY KEY (`RentalID`) USING BTREE,
   INDEX `FK_Rental_Invoice`(`InvoiceID` ASC) USING BTREE,
@@ -550,17 +551,17 @@ CREATE TABLE `rental`  (
 -- ----------------------------
 -- Records of rental
 -- ----------------------------
-INSERT INTO `rental` VALUES (1, '2024-09-05', '2024-09-07', '2024-09-07', 0.00, 450.00, 103.50, 553.50, 1, 4, 0.00);
-INSERT INTO `rental` VALUES (2, '2024-01-15', '2024-01-30', '2024-01-30', 0.00, 1650.00, 379.50, 2029.50, 2, 5, 0.00);
-INSERT INTO `rental` VALUES (3, '2024-11-04', '2024-11-08', '2024-11-08', 0.00, 9000.00, 161.00, NULL, 3, 1, 0.00);
+INSERT INTO `rental` VALUES (1, '2024-09-05', '2024-09-07', '2024-09-07', 450.00, 103.50, 553.50, 1, 4, 0.00, 0.00);
+INSERT INTO `rental` VALUES (2, '2024-01-15', '2024-01-30', '2024-01-30', 1650.00, 379.50, 2029.50, 2, 5, 0.00, 0.00);
+INSERT INTO `rental` VALUES (3, '2024-11-04', '2024-11-08', '2024-11-08', 9000.00, 161.00, NULL, 3, 1, 0.00, 0.00);
 
 -- ----------------------------
 -- Table structure for rentalcar
 -- ----------------------------
 DROP TABLE IF EXISTS `rentalcar`;
 CREATE TABLE `rentalcar`  (
-  `RentalID` int(11) NOT NULL,
-  `CarID` int(11) NOT NULL,
+  `RentalID` int(10) UNSIGNED NOT NULL,
+  `CarID` mediumint(8) UNSIGNED NOT NULL,
   `DailyRateApplied` decimal(6, 2) NOT NULL,
   `DiscountAppliedPercentage` decimal(5, 2) NULL DEFAULT 0.00,
   `RentalDuration` smallint(4) UNSIGNED NOT NULL,
@@ -582,8 +583,8 @@ INSERT INTO `rentalcar` VALUES (3, 15, 140.00, 0.00, 4);
 -- ----------------------------
 DROP TABLE IF EXISTS `rentalcustomer`;
 CREATE TABLE `rentalcustomer`  (
-  `RentalID` int(11) NOT NULL,
-  `CustomerID` int(11) NOT NULL,
+  `RentalID` int(10) UNSIGNED NOT NULL,
+  `CustomerID` int(10) UNSIGNED NOT NULL,
   PRIMARY KEY (`RentalID`, `CustomerID`) USING BTREE,
   INDEX `FK_RentalCustomer_Customer`(`CustomerID` ASC) USING BTREE,
   CONSTRAINT `FK_RentalCustomer_Customer` FOREIGN KEY (`CustomerID`) REFERENCES `customer` (`CustomerID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
@@ -600,12 +601,12 @@ INSERT INTO `rentalcustomer` VALUES (1, 1);
 -- ----------------------------
 DROP TABLE IF EXISTS `reservation`;
 CREATE TABLE `reservation`  (
-  `ReservationID` int(11) NOT NULL AUTO_INCREMENT,
+  `ReservationID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `ReservationDate` date NOT NULL DEFAULT curdate(),
   `PickupDate` date NOT NULL,
   `ReturnDate` date NOT NULL,
   `ReservationStatus` enum('Active','Cancelled','Completed') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT 'Active',
-  `CustomerID` int(11) NOT NULL,
+  `CustomerID` int(10) UNSIGNED NOT NULL,
   PRIMARY KEY (`ReservationID`) USING BTREE,
   INDEX `FK_Reservation_Customer`(`CustomerID` ASC) USING BTREE,
   CONSTRAINT `FK_Reservation_Customer` FOREIGN KEY (`CustomerID`) REFERENCES `customer` (`CustomerID`) ON DELETE RESTRICT ON UPDATE RESTRICT
@@ -625,8 +626,8 @@ INSERT INTO `reservation` VALUES (5, '2024-01-01', '2025-01-15', '2025-01-30', '
 -- ----------------------------
 DROP TABLE IF EXISTS `reservationcar`;
 CREATE TABLE `reservationcar`  (
-  `ReservationID` int(11) NOT NULL,
-  `CarID` int(11) NOT NULL,
+  `ReservationID` int(10) UNSIGNED NOT NULL,
+  `CarID` mediumint(8) UNSIGNED NOT NULL,
   PRIMARY KEY (`ReservationID`, `CarID`) USING BTREE,
   INDEX `FK_ReservationCar_Car`(`CarID` ASC) USING BTREE,
   CONSTRAINT `FK_ReservationCar_Car` FOREIGN KEY (`CarID`) REFERENCES `car` (`CarID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
@@ -647,8 +648,8 @@ INSERT INTO `reservationcar` VALUES (2, 18);
 -- ----------------------------
 DROP TABLE IF EXISTS `reservationcustomer`;
 CREATE TABLE `reservationcustomer`  (
-  `ReservationID` int(11) NOT NULL,
-  `CustomerID` int(11) NOT NULL,
+  `ReservationID` int(10) UNSIGNED NOT NULL,
+  `CustomerID` int(10) UNSIGNED NOT NULL,
   PRIMARY KEY (`ReservationID`, `CustomerID`) USING BTREE,
   INDEX `FK_ReservationCustomer_Customer`(`CustomerID` ASC) USING BTREE,
   CONSTRAINT `FK_ReservationCustomer_Customer` FOREIGN KEY (`CustomerID`) REFERENCES `customer` (`CustomerID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
@@ -669,7 +670,7 @@ INSERT INTO `reservationcustomer` VALUES (4, 5);
 -- ----------------------------
 DROP TABLE IF EXISTS `role`;
 CREATE TABLE `role`  (
-  `RoleID` int(11) NOT NULL AUTO_INCREMENT,
+  `RoleID` tinyint(3) UNSIGNED NOT NULL AUTO_INCREMENT,
   `RoleName` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   PRIMARY KEY (`RoleID`) USING BTREE,
   UNIQUE INDEX `RoleName`(`RoleName` ASC) USING BTREE
@@ -690,8 +691,8 @@ INSERT INTO `role` VALUES (4, 'Specjalista ds. marketingu');
 -- ----------------------------
 DROP TABLE IF EXISTS `rolepermission`;
 CREATE TABLE `rolepermission`  (
-  `RoleID` int(11) NOT NULL,
-  `PermissionID` int(11) NOT NULL,
+  `RoleID` tinyint(3) UNSIGNED NOT NULL,
+  `PermissionID` smallint(5) UNSIGNED NOT NULL,
   PRIMARY KEY (`RoleID`, `PermissionID`) USING BTREE,
   INDEX `FK_RolePermission_Permission`(`PermissionID` ASC) USING BTREE,
   CONSTRAINT `FK_RolePermission_Permission` FOREIGN KEY (`PermissionID`) REFERENCES `permission` (`PermissionID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
@@ -739,7 +740,7 @@ INSERT INTO `rolepermission` VALUES (6, 14);
 -- ----------------------------
 DROP TABLE IF EXISTS `vehicletype`;
 CREATE TABLE `vehicletype`  (
-  `VehicleTypeID` int(11) NOT NULL AUTO_INCREMENT,
+  `VehicleTypeID` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT,
   `Category` enum('A','B','C','D','E') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   `Description` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
   `SeatingCapacity` smallint(2) UNSIGNED NOT NULL,
