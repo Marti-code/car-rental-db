@@ -11,7 +11,7 @@
  Target Server Version : 110601 (11.6.1-MariaDB)
  File Encoding         : 65001
 
- Date: 28/11/2024 21:14:54
+ Date: 29/11/2024 14:02:45
 */
 
 SET NAMES utf8mb4;
@@ -45,7 +45,7 @@ CREATE TABLE `car`  (
   `CarID` mediumint(8) UNSIGNED NOT NULL AUTO_INCREMENT,
   `LicensePlateNumber` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   `VIN` varchar(17) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
-  `Make` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `MakeID` smallint(5) UNSIGNED NOT NULL,
   `Model` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   `Year` smallint(4) UNSIGNED NOT NULL,
   `Color` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
@@ -62,33 +62,35 @@ CREATE TABLE `car`  (
   UNIQUE INDEX `VIN`(`VIN` ASC) USING BTREE,
   INDEX `FK_Car_VehicleType`(`VehicleTypeID` ASC) USING BTREE,
   INDEX `FK_Car_FuelType`(`FuelTypeID` ASC) USING BTREE,
+  INDEX `FK_Car_Make`(`MakeID` ASC) USING BTREE,
   CONSTRAINT `FK_Car_FuelType` FOREIGN KEY (`FuelTypeID`) REFERENCES `fueltype` (`FuelTypeID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `FK_Car_Make` FOREIGN KEY (`MakeID`) REFERENCES `make` (`MakeID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `FK_Car_VehicleType` FOREIGN KEY (`VehicleTypeID`) REFERENCES `vehicletype` (`VehicleTypeID`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 172 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of car
 -- ----------------------------
-INSERT INTO `car` VALUES (1, 'KRA12345', '1HGCM82633A123456', 'Toyota', 'Corolla', 2018, 'Czerwony', 50000, 'Available', 1, 1, '2024-06-15', '2025-06-15', 'Tak', 150.00);
-INSERT INTO `car` VALUES (2, 'KRK98765', '1HGCM82633A987654', 'Ford', 'Fiesta', 2019, 'Niebieski', 30000, 'Available', 2, 1, '2024-07-20', '2025-07-20', 'Nie', 120.00);
-INSERT INTO `car` VALUES (3, 'WAW54321', '1HGCM82633A543210', 'BMW', 'X5', 2020, 'Czarny', 20000, 'Under Maintenance', 3, 2, '2024-08-01', '2025-08-01', 'Tak', 300.00);
-INSERT INTO `car` VALUES (4, 'GD12345', '1HGCM82633A321654', 'Audi', 'A4', 2017, 'Biały', 60000, 'Available', 1, 1, '2024-04-10', '2025-04-10', 'Tak', 180.00);
-INSERT INTO `car` VALUES (5, 'WRO67890', '1HGCM82633A567890', 'Mercedes', 'C-Class', 2021, 'Szary', 15000, 'Available', 4, 3, '2024-05-15', '2025-05-15', 'Tak', 250.00);
-INSERT INTO `car` VALUES (6, 'POZ11111', '1HGCM82633A111111', 'Volkswagen', 'Golf', 2015, 'Zielony', 80000, 'Available', 2, 1, '2024-09-05', '2025-09-05', 'Nie', 100.00);
-INSERT INTO `car` VALUES (7, 'LOD22222', '1HGCM82633A222222', 'Skoda', 'Octavia', 2016, 'Niebieski', 70000, 'Under Maintenance', 2, 1, '2024-02-25', '2025-02-25', 'Tak', 110.00);
-INSERT INTO `car` VALUES (8, 'GDA33333', '1HGCM82633A333333', 'Honda', 'Civic', 2018, 'Srebrny', 45000, 'Available', 1, 1, '2024-12-10', '2025-12-10', 'Tak', 130.00);
-INSERT INTO `car` VALUES (9, 'SZC44444', '1HGCM82633A444444', 'Hyundai', 'i30', 2022, 'Biały', 10000, 'Available', 2, 1, '2024-03-30', '2025-03-30', 'Tak', 160.00);
-INSERT INTO `car` VALUES (10, 'KAT55555', '1HGCM82633A555555', 'Peugeot', '208', 2019, 'Żółty', 25000, 'Available', 2, 1, '2024-08-17', '2025-08-17', 'Tak', 140.00);
-INSERT INTO `car` VALUES (11, 'KRK66666', '1HGCM82633A666666', 'Nissan', 'Qashqai', 2021, 'Czerwony', 18000, 'Rented', 3, 2, '2024-11-10', '2025-11-10', 'Tak', 220.00);
-INSERT INTO `car` VALUES (12, 'WAW77777', '1HGCM82633A777777', 'Kia', 'Sportage', 2020, 'Czarny', 32000, 'Available', 3, 2, '2024-01-15', '2025-01-15', 'Nie', 200.00);
-INSERT INTO `car` VALUES (13, 'GD88888', '1HGCM82633A888888', 'Mazda', 'CX-5', 2018, 'Szary', 55000, 'Under Maintenance', 3, 2, '2024-06-22', '2025-06-22', 'Tak', 190.00);
-INSERT INTO `car` VALUES (14, 'POZ99999', '1HGCM82633A999999', 'Renault', 'Clio', 2016, 'Niebieski', 72000, 'Available', 2, 1, '2024-10-05', '2025-10-05', 'Tak', 110.00);
-INSERT INTO `car` VALUES (15, 'LOD10101', '1HGCM82633A101010', 'Toyota', 'Yaris', 2021, 'Zielony', 22000, 'Rented', 2, 1, '2024-04-20', '2025-04-20', 'Tak', 140.00);
-INSERT INTO `car` VALUES (16, 'GDA20202', '1HGCM82633A202020', 'Ford', 'Focus', 2019, 'Srebrny', 39000, 'Available', 2, 1, '2024-07-15', '2025-07-15', 'Tak', 130.00);
-INSERT INTO `car` VALUES (17, 'SZC30303', '1HGCM82633A303030', 'Opel', 'Astra', 2020, 'Biały', 27000, 'Available', 2, 1, '2024-05-10', '2025-05-10', 'Nie', 125.00);
-INSERT INTO `car` VALUES (18, 'KAT40404', '1HGCM82633A404040', 'BMW', '3 Series', 2018, 'Czarny', 60000, 'Rented', 4, 2, '2024-06-18', '2025-06-18', 'Tak', 250.00);
-INSERT INTO `car` VALUES (19, 'KRK50505', '1HGCM82633A505050', 'Mercedes', 'E-Class', 2022, 'Szary', 14000, 'Available', 4, 3, '2024-12-15', '2025-12-15', 'Nie', 280.00);
-INSERT INTO `car` VALUES (20, 'WAW60606', '1HGCM82633A606060', 'Audi', 'Q5', 2017, 'Niebieski', 53000, 'Under Maintenance', 3, 2, '2024-08-01', '2025-08-01', 'Tak', 270.00);
+INSERT INTO `car` VALUES (1, 'KRA12345', '1HGCM82633A123456', 0, 'Corolla', 2018, 'Czerwony', 50000, 'Available', 1, 1, '2024-06-15', '2025-06-15', 'Tak', 150.00);
+INSERT INTO `car` VALUES (2, 'KRK98765', '1HGCM82633A987654', 0, 'Fiesta', 2019, 'Niebieski', 30000, 'Available', 2, 1, '2024-07-20', '2025-07-20', 'Nie', 120.00);
+INSERT INTO `car` VALUES (3, 'WAW54321', '1HGCM82633A543210', 0, 'X5', 2020, 'Czarny', 20000, 'Under Maintenance', 3, 2, '2024-08-01', '2025-08-01', 'Tak', 300.00);
+INSERT INTO `car` VALUES (4, 'GD12345', '1HGCM82633A321654', 0, 'A4', 2017, 'Biały', 60000, 'Available', 1, 1, '2024-04-10', '2025-04-10', 'Tak', 180.00);
+INSERT INTO `car` VALUES (5, 'WRO67890', '1HGCM82633A567890', 0, 'C-Class', 2021, 'Szary', 15000, 'Available', 4, 3, '2024-05-15', '2025-05-15', 'Tak', 250.00);
+INSERT INTO `car` VALUES (6, 'POZ11111', '1HGCM82633A111111', 0, 'Golf', 2015, 'Zielony', 80000, 'Available', 2, 1, '2024-09-05', '2025-09-05', 'Nie', 100.00);
+INSERT INTO `car` VALUES (7, 'LOD22222', '1HGCM82633A222222', 0, 'Octavia', 2016, 'Niebieski', 70000, 'Under Maintenance', 2, 1, '2024-02-25', '2025-02-25', 'Tak', 110.00);
+INSERT INTO `car` VALUES (8, 'GDA33333', '1HGCM82633A333333', 0, 'Civic', 2018, 'Srebrny', 45000, 'Available', 1, 1, '2024-12-10', '2025-12-10', 'Tak', 130.00);
+INSERT INTO `car` VALUES (9, 'SZC44444', '1HGCM82633A444444', 0, 'i30', 2022, 'Biały', 10000, 'Available', 2, 1, '2024-03-30', '2025-03-30', 'Tak', 160.00);
+INSERT INTO `car` VALUES (10, 'KAT55555', '1HGCM82633A555555', 0, '208', 2019, 'Żółty', 25000, 'Available', 2, 1, '2024-08-17', '2025-08-17', 'Tak', 140.00);
+INSERT INTO `car` VALUES (11, 'KRK66666', '1HGCM82633A666666', 0, 'Qashqai', 2021, 'Czerwony', 18000, 'Rented', 3, 2, '2024-11-10', '2025-11-10', 'Tak', 220.00);
+INSERT INTO `car` VALUES (12, 'WAW77777', '1HGCM82633A777777', 0, 'Sportage', 2020, 'Czarny', 32000, 'Available', 3, 2, '2024-01-15', '2025-01-15', 'Nie', 200.00);
+INSERT INTO `car` VALUES (13, 'GD88888', '1HGCM82633A888888', 0, 'CX-5', 2018, 'Szary', 55000, 'Under Maintenance', 3, 2, '2024-06-22', '2025-06-22', 'Tak', 190.00);
+INSERT INTO `car` VALUES (14, 'POZ99999', '1HGCM82633A999999', 0, 'Clio', 2016, 'Niebieski', 72000, 'Available', 2, 1, '2024-10-05', '2025-10-05', 'Tak', 110.00);
+INSERT INTO `car` VALUES (15, 'LOD10101', '1HGCM82633A101010', 0, 'Yaris', 2021, 'Zielony', 22000, 'Rented', 2, 1, '2024-04-20', '2025-04-20', 'Tak', 140.00);
+INSERT INTO `car` VALUES (16, 'GDA20202', '1HGCM82633A202020', 0, 'Focus', 2019, 'Srebrny', 39000, 'Available', 2, 1, '2024-07-15', '2025-07-15', 'Tak', 130.00);
+INSERT INTO `car` VALUES (17, 'SZC30303', '1HGCM82633A303030', 0, 'Astra', 2020, 'Biały', 27000, 'Available', 2, 1, '2024-05-10', '2025-05-10', 'Nie', 125.00);
+INSERT INTO `car` VALUES (18, 'KAT40404', '1HGCM82633A404040', 0, '3 Series', 2018, 'Żółty', 60000, 'Rented', 4, 2, '2024-06-18', '2025-06-18', 'Tak', 250.00);
+INSERT INTO `car` VALUES (19, 'KRK50505', '1HGCM82633A505050', 0, 'E-Class', 2022, 'Szary', 14000, 'Available', 4, 3, '2024-12-15', '2025-12-15', 'Nie', 280.00);
+INSERT INTO `car` VALUES (20, 'WAW60606', '1HGCM82633A606060', 0, 'Q5', 2017, 'Żółty', 53000, 'Under Maintenance', 3, 2, '2024-08-01', '2025-08-01', 'Tak', 270.00);
 
 -- ----------------------------
 -- Table structure for caramenity
@@ -358,6 +360,30 @@ INSERT INTO `fueltype` VALUES (5, 'gaz');
 INSERT INTO `fueltype` VALUES (4, 'hybrydowy');
 
 -- ----------------------------
+-- Table structure for image
+-- ----------------------------
+DROP TABLE IF EXISTS `image`;
+CREATE TABLE `image`  (
+  `ImageID` mediumint(8) NOT NULL AUTO_INCREMENT,
+  `CarID` mediumint(8) UNSIGNED NULL DEFAULT NULL,
+  `ImageName` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `ImageURL` varchar(2083) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `UploadedAt` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`ImageID`) USING BTREE,
+  INDEX `FK_Car_Image`(`CarID` ASC) USING BTREE,
+  CONSTRAINT `FK_Car_Image` FOREIGN KEY (`CarID`) REFERENCES `car` (`CarID`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of image
+-- ----------------------------
+INSERT INTO `image` VALUES (1, 10, 'żółte auto', 'https://images.unsplash.com/photo-1464219789935-c2d9d9aba644?q=80&w=1770&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', '2024-11-29 13:57:47');
+INSERT INTO `image` VALUES (2, 10, 'żółte auto', 'https://images.unsplash.com/photo-1470224114660-3f6686c562eb?q=80&w=1935&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', '2024-11-29 14:00:03');
+INSERT INTO `image` VALUES (3, 18, 'żółta wyścigówka', 'https://images.unsplash.com/photo-1518265612847-134e6599e7e4?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fGNhciUyMHllbGxvd3xlbnwwfHwwfHx8Mg%3D%3D', '2024-11-29 14:00:37');
+INSERT INTO `image` VALUES (4, 18, 'żółtek', 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mjh8fGNhciUyMHllbGxvd3xlbnwwfHwwfHx8Mg%3D%3D', '2024-11-29 14:00:53');
+INSERT INTO `image` VALUES (5, 20, 'żółta strzała', 'https://images.unsplash.com/photo-1517467561457-b5bc91c2e453?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGNhciUyMHllbGxvd3xlbnwwfHwwfHx8Mg%3D%3D', '2024-11-29 14:01:35');
+
+-- ----------------------------
 -- Table structure for invoice
 -- ----------------------------
 DROP TABLE IF EXISTS `invoice`;
@@ -449,6 +475,20 @@ INSERT INTO `maintenance` VALUES (3, 7, 11, '2024-10-24', 'Uszkodzenie elektroni
 INSERT INTO `maintenance` VALUES (4, 3, 13, '2024-10-31', 'Zepsuta klimatyzacja');
 INSERT INTO `maintenance` VALUES (5, 13, 11, '2024-11-02', 'Zużyty filtr paliwa');
 INSERT INTO `maintenance` VALUES (6, 20, 13, '2024-11-06', 'Uszkodzenie podwozia');
+
+-- ----------------------------
+-- Table structure for make
+-- ----------------------------
+DROP TABLE IF EXISTS `make`;
+CREATE TABLE `make`  (
+  `MakeID` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `MakeName` varchar(60) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`MakeID`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of make
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for payment
@@ -768,7 +808,7 @@ INSERT INTO `vehicletype` VALUES (10, 'E', 'Minibus', 9, 700, 'Manual', 5);
 -- View structure for v_ActiveReservations
 -- ----------------------------
 DROP VIEW IF EXISTS `v_ActiveReservations`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_ActiveReservations` AS select `res`.`ReservationID` AS `ReservationID`,`res`.`ReservationDate` AS `ReservationDate`,`res`.`PickupDate` AS `PickupDate`,`res`.`ReturnDate` AS `ReturnDate`,`c`.`CustomerID` AS `CustomerID`,`c`.`FirstName` AS `FirstName`,`c`.`LastName` AS `LastName`,`c`.`Email` AS `Email`,`rc`.`CarID` AS `CarID`,`car`.`Make` AS `Make`,`car`.`Model` AS `Model`,`car`.`LicensePlateNumber` AS `LicensePlateNumber` from (((`reservation` `res` join `customer` `c` on(`res`.`CustomerID` = `c`.`CustomerID`)) join `reservationcar` `rc` on(`res`.`ReservationID` = `rc`.`ReservationID`)) join `car` on(`rc`.`CarID` = `car`.`CarID`)) where `res`.`ReservationStatus` = 'Active' and `res`.`PickupDate` >= curdate() order by `res`.`PickupDate`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_ActiveReservations` AS select `res`.`ReservationID` AS `ReservationID`,`res`.`ReservationDate` AS `ReservationDate`,`res`.`PickupDate` AS `PickupDate`,`res`.`ReturnDate` AS `ReturnDate`,`c`.`CustomerID` AS `CustomerID`,`c`.`FirstName` AS `FirstName`,`c`.`LastName` AS `LastName`,`c`.`Email` AS `Email`,`rc`.`CarID` AS `CarID`,`projekt_dylag_herczyk_huza`.`car`.`Make` AS `Make`,`projekt_dylag_herczyk_huza`.`car`.`Model` AS `Model`,`projekt_dylag_herczyk_huza`.`car`.`LicensePlateNumber` AS `LicensePlateNumber` from (((`reservation` `res` join `customer` `c` on(`res`.`CustomerID` = `c`.`CustomerID`)) join `reservationcar` `rc` on(`res`.`ReservationID` = `rc`.`ReservationID`)) join `car` on(`rc`.`CarID` = `projekt_dylag_herczyk_huza`.`car`.`CarID`)) where `res`.`ReservationStatus` = 'Active' and `res`.`PickupDate` >= curdate() order by `res`.`PickupDate`;
 
 -- ----------------------------
 -- View structure for v_AvailableCars
@@ -780,13 +820,13 @@ CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_AvailableCars` AS sele
 -- View structure for v_CarUtilityStats
 -- ----------------------------
 DROP VIEW IF EXISTS `v_CarUtilityStats`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_CarUtilityStats` AS select `car`.`CarID` AS `CarID`,`car`.`LicensePlateNumber` AS `LicensePlateNumber`,`car`.`Make` AS `Make`,`car`.`Model` AS `Model`,sum(`rc`.`RentalDuration`) AS `TotalRentalDays`,sum(`rc`.`DailyRateApplied` * `rc`.`RentalDuration`) AS `TotalRevenue` from (`car` left join `rentalcar` `rc` on(`car`.`CarID` = `rc`.`CarID`)) group by `car`.`CarID`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_CarUtilityStats` AS select `car`.`CarID` AS `CarID`,`car`.`LicensePlateNumber` AS `LicensePlateNumber`,`projekt_dylag_herczyk_huza`.`car`.`Make` AS `Make`,`projekt_dylag_herczyk_huza`.`car`.`Model` AS `Model`,sum(`rc`.`RentalDuration`) AS `TotalRentalDays`,sum(`rc`.`DailyRateApplied` * `rc`.`RentalDuration`) AS `TotalRevenue` from (`car` left join `rentalcar` `rc` on(`projekt_dylag_herczyk_huza`.`car`.`CarID` = `rc`.`CarID`)) group by `projekt_dylag_herczyk_huza`.`car`.`CarID`;
 
 -- ----------------------------
 -- View structure for v_PopularCars
 -- ----------------------------
 DROP VIEW IF EXISTS `v_PopularCars`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_PopularCars` AS select `car`.`CarID` AS `CarID`,`car`.`LicensePlateNumber` AS `LicensePlateNumber`,`car`.`Make` AS `Make`,`car`.`Model` AS `Model`,count(`rentalcar`.`RentalID`) AS `TimesRented` from (`car` left join `rentalcar` on(`car`.`CarID` = `rentalcar`.`CarID`)) group by `car`.`CarID` order by count(`rentalcar`.`RentalID`) desc;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_PopularCars` AS select `car`.`CarID` AS `CarID`,`car`.`LicensePlateNumber` AS `LicensePlateNumber`,`projekt_dylag_herczyk_huza`.`car`.`Make` AS `Make`,`projekt_dylag_herczyk_huza`.`car`.`Model` AS `Model`,count(`projekt_dylag_herczyk_huza`.`rentalcar`.`RentalID`) AS `TimesRented` from (`car` left join `rentalcar` on(`projekt_dylag_herczyk_huza`.`car`.`CarID` = `projekt_dylag_herczyk_huza`.`rentalcar`.`CarID`)) group by `projekt_dylag_herczyk_huza`.`car`.`CarID` order by count(`projekt_dylag_herczyk_huza`.`rentalcar`.`RentalID`) desc;
 
 -- ----------------------------
 -- View structure for v_RevenueByMonth
@@ -798,7 +838,7 @@ CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_RevenueByMonth` AS sel
 -- View structure for v_UpcomingReservations
 -- ----------------------------
 DROP VIEW IF EXISTS `v_UpcomingReservations`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_UpcomingReservations` AS select `res`.`ReservationID` AS `ReservationID`,`res`.`ReservationDate` AS `ReservationDate`,`res`.`PickupDate` AS `PickupDate`,`res`.`ReturnDate` AS `ReturnDate`,`c`.`CustomerID` AS `CustomerID`,`c`.`FirstName` AS `CustomerFirstName`,`c`.`LastName` AS `CustomerLastName`,`c`.`Email` AS `CustomerEmail`,`car`.`CarID` AS `CarID`,`car`.`LicensePlateNumber` AS `LicensePlateNumber`,`car`.`Make` AS `Make`,`car`.`Model` AS `Model` from (((`reservation` `res` join `customer` `c` on(`res`.`CustomerID` = `c`.`CustomerID`)) join `reservationcar` `rc` on(`res`.`ReservationID` = `rc`.`ReservationID`)) join `car` on(`rc`.`CarID` = `car`.`CarID`)) where `res`.`PickupDate` between curdate() and curdate() + interval 7 day and `res`.`ReservationStatus` = 'Active' order by `res`.`PickupDate`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_UpcomingReservations` AS select `res`.`ReservationID` AS `ReservationID`,`res`.`ReservationDate` AS `ReservationDate`,`res`.`PickupDate` AS `PickupDate`,`res`.`ReturnDate` AS `ReturnDate`,`c`.`CustomerID` AS `CustomerID`,`c`.`FirstName` AS `CustomerFirstName`,`c`.`LastName` AS `CustomerLastName`,`c`.`Email` AS `CustomerEmail`,`car`.`CarID` AS `CarID`,`car`.`LicensePlateNumber` AS `LicensePlateNumber`,`projekt_dylag_herczyk_huza`.`car`.`Make` AS `Make`,`projekt_dylag_herczyk_huza`.`car`.`Model` AS `Model` from (((`reservation` `res` join `customer` `c` on(`res`.`CustomerID` = `c`.`CustomerID`)) join `reservationcar` `rc` on(`res`.`ReservationID` = `rc`.`ReservationID`)) join `car` on(`rc`.`CarID` = `projekt_dylag_herczyk_huza`.`car`.`CarID`)) where `res`.`PickupDate` between curdate() and curdate() + interval 7 day and `res`.`ReservationStatus` = 'Active' order by `res`.`PickupDate`;
 
 -- ----------------------------
 -- Procedure structure for AddCustomer
