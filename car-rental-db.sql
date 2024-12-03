@@ -11,7 +11,7 @@
  Target Server Version : 110601 (11.6.1-MariaDB)
  File Encoding         : 65001
 
- Date: 29/11/2024 14:02:45
+ Date: 03/12/2024 18:49:48
 */
 
 SET NAMES utf8mb4;
@@ -260,7 +260,7 @@ CREATE TABLE `employee`  (
   `PhoneNumber` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
   `HireDate` date NULL DEFAULT NULL,
   `EndDate` date NULL DEFAULT NULL,
-  `Status` enum('Aktywne','Nieaktywne') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT 'Aktywne',
+  `AccountStatus` enum('Aktywne','Nieaktywne') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT 'Aktywne',
   `PasswordHash` varchar(60) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   PRIMARY KEY (`EmployeeID`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
@@ -497,9 +497,7 @@ DROP TABLE IF EXISTS `payment`;
 CREATE TABLE `payment`  (
   `PaymentID` int(11) NOT NULL AUTO_INCREMENT,
   `PaymentDate` date NOT NULL DEFAULT curdate(),
-  `AmountNet` decimal(8, 2) NOT NULL,
-  `VAT` decimal(7, 2) NOT NULL,
-  `AmountGross` decimal(8, 2) NOT NULL,
+  `Amount` decimal(8, 2) NOT NULL,
   `PaymentStatus` enum('Completed','Pending','Failed') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT 'Pending',
   `TransactionID` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
   `InvoiceID` int(10) UNSIGNED NOT NULL,
@@ -514,9 +512,9 @@ CREATE TABLE `payment`  (
 -- ----------------------------
 -- Records of payment
 -- ----------------------------
-INSERT INTO `payment` VALUES (1, '2024-11-07', 0.00, 23.00, 0.00, 'Completed', '123', 1, 3);
-INSERT INTO `payment` VALUES (2, '2024-11-27', 0.00, 23.00, 0.00, 'Pending', '321', 2, 2);
-INSERT INTO `payment` VALUES (3, '2024-11-27', 0.00, 23.00, 0.00, 'Pending', '942', 3, 2);
+INSERT INTO `payment` VALUES (1, '2024-11-07', 0.00, 'Completed', '123', 1, 3);
+INSERT INTO `payment` VALUES (2, '2024-11-27', 0.00, 'Pending', '321', 2, 2);
+INSERT INTO `payment` VALUES (3, '2024-11-27', 0.00, 'Pending', '942', 3, 2);
 
 -- ----------------------------
 -- Table structure for paymentmethod
@@ -808,25 +806,25 @@ INSERT INTO `vehicletype` VALUES (10, 'E', 'Minibus', 9, 700, 'Manual', 5);
 -- View structure for v_ActiveReservations
 -- ----------------------------
 DROP VIEW IF EXISTS `v_ActiveReservations`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_ActiveReservations` AS select `res`.`ReservationID` AS `ReservationID`,`res`.`ReservationDate` AS `ReservationDate`,`res`.`PickupDate` AS `PickupDate`,`res`.`ReturnDate` AS `ReturnDate`,`c`.`CustomerID` AS `CustomerID`,`c`.`FirstName` AS `FirstName`,`c`.`LastName` AS `LastName`,`c`.`Email` AS `Email`,`rc`.`CarID` AS `CarID`,`projekt_dylag_herczyk_huza`.`car`.`Make` AS `Make`,`projekt_dylag_herczyk_huza`.`car`.`Model` AS `Model`,`projekt_dylag_herczyk_huza`.`car`.`LicensePlateNumber` AS `LicensePlateNumber` from (((`reservation` `res` join `customer` `c` on(`res`.`CustomerID` = `c`.`CustomerID`)) join `reservationcar` `rc` on(`res`.`ReservationID` = `rc`.`ReservationID`)) join `car` on(`rc`.`CarID` = `projekt_dylag_herczyk_huza`.`car`.`CarID`)) where `res`.`ReservationStatus` = 'Active' and `res`.`PickupDate` >= curdate() order by `res`.`PickupDate`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_ActiveReservations` AS select `res`.`ReservationID` AS `ReservationID`,`res`.`ReservationDate` AS `ReservationDate`,`res`.`PickupDate` AS `PickupDate`,`res`.`ReturnDate` AS `ReturnDate`,`c`.`CustomerID` AS `CustomerID`,`c`.`FirstName` AS `FirstName`,`c`.`LastName` AS `LastName`,`c`.`Email` AS `Email`,`rc`.`CarID` AS `CarID`,`m`.`MakeName` AS `Make`,`car`.`Model` AS `Model`,`car`.`LicensePlateNumber` AS `LicensePlateNumber` from ((((`reservation` `res` join `customer` `c` on(`res`.`CustomerID` = `c`.`CustomerID`)) join `reservationcar` `rc` on(`res`.`ReservationID` = `rc`.`ReservationID`)) join `car` on(`rc`.`CarID` = `car`.`CarID`)) left join `make` `m` on(`car`.`MakeID` = `m`.`MakeID`)) where `res`.`ReservationStatus` = 'Active' and `res`.`PickupDate` >= curdate() order by `res`.`PickupDate`;
 
 -- ----------------------------
 -- View structure for v_AvailableCars
 -- ----------------------------
 DROP VIEW IF EXISTS `v_AvailableCars`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_AvailableCars` AS select `c`.`CarID` AS `CarID`,`c`.`LicensePlateNumber` AS `LicensePlateNumber`,`c`.`Make` AS `Make`,`c`.`Model` AS `Model`,`c`.`Year` AS `Year`,`c`.`Color` AS `Color`,`c`.`DailyRate` AS `DailyRate`,`vt`.`Category` AS `VehicleCategory`,`vt`.`TransmissionType` AS `TransmissionType`,group_concat(distinct `f`.`FeatureName` separator ', ') AS `Features`,group_concat(distinct `a`.`AmenityName` separator ', ') AS `Amenities` from (((((`car` `c` join `vehicletype` `vt` on(`c`.`VehicleTypeID` = `vt`.`VehicleTypeID`)) left join `carfeature` `cf` on(`c`.`CarID` = `cf`.`CarID`)) left join `feature` `f` on(`cf`.`FeatureID` = `f`.`FeatureID`)) left join `caramenity` `ca` on(`c`.`CarID` = `ca`.`CarID`)) left join `amenity` `a` on(`ca`.`AmenityID` = `a`.`AmenityID`)) where `c`.`CarStatus` = 'Available' group by `c`.`CarID`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_AvailableCars` AS select `c`.`CarID` AS `CarID`,`c`.`LicensePlateNumber` AS `LicensePlateNumber`,`m`.`MakeName` AS `Make`,`c`.`Model` AS `Model`,`c`.`Year` AS `Year`,`c`.`Color` AS `Color`,`c`.`DailyRate` AS `DailyRate`,`vt`.`Category` AS `VehicleCategory`,`vt`.`TransmissionType` AS `TransmissionType`,group_concat(distinct `f`.`FeatureName` separator ', ') AS `Features`,group_concat(distinct `a`.`AmenityName` separator ', ') AS `Amenities` from ((((((`car` `c` join `vehicletype` `vt` on(`c`.`VehicleTypeID` = `vt`.`VehicleTypeID`)) left join `make` `m` on(`c`.`MakeID` = `m`.`MakeID`)) left join `carfeature` `cf` on(`c`.`CarID` = `cf`.`CarID`)) left join `feature` `f` on(`cf`.`FeatureID` = `f`.`FeatureID`)) left join `caramenity` `ca` on(`c`.`CarID` = `ca`.`CarID`)) left join `amenity` `a` on(`ca`.`AmenityID` = `a`.`AmenityID`)) where `c`.`CarStatus` = 'Available' group by `c`.`CarID`,`c`.`LicensePlateNumber`,`m`.`MakeName`,`c`.`Model`,`c`.`Year`,`c`.`Color`,`c`.`DailyRate`,`vt`.`Category`,`vt`.`TransmissionType`;
 
 -- ----------------------------
 -- View structure for v_CarUtilityStats
 -- ----------------------------
 DROP VIEW IF EXISTS `v_CarUtilityStats`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_CarUtilityStats` AS select `car`.`CarID` AS `CarID`,`car`.`LicensePlateNumber` AS `LicensePlateNumber`,`projekt_dylag_herczyk_huza`.`car`.`Make` AS `Make`,`projekt_dylag_herczyk_huza`.`car`.`Model` AS `Model`,sum(`rc`.`RentalDuration`) AS `TotalRentalDays`,sum(`rc`.`DailyRateApplied` * `rc`.`RentalDuration`) AS `TotalRevenue` from (`car` left join `rentalcar` `rc` on(`projekt_dylag_herczyk_huza`.`car`.`CarID` = `rc`.`CarID`)) group by `projekt_dylag_herczyk_huza`.`car`.`CarID`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_CarUtilityStats` AS select `car`.`CarID` AS `CarID`,`car`.`LicensePlateNumber` AS `LicensePlateNumber`,`m`.`MakeName` AS `Make`,`car`.`Model` AS `Model`,sum(`rc`.`RentalDuration`) AS `TotalRentalDays`,sum(`rc`.`DailyRateApplied` * `rc`.`RentalDuration`) AS `TotalRevenue` from ((`car` left join `make` `m` on(`car`.`MakeID` = `m`.`MakeID`)) left join `rentalcar` `rc` on(`car`.`CarID` = `rc`.`CarID`)) group by `car`.`CarID`,`car`.`LicensePlateNumber`,`m`.`MakeName`,`car`.`Model`;
 
 -- ----------------------------
 -- View structure for v_PopularCars
 -- ----------------------------
 DROP VIEW IF EXISTS `v_PopularCars`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_PopularCars` AS select `car`.`CarID` AS `CarID`,`car`.`LicensePlateNumber` AS `LicensePlateNumber`,`projekt_dylag_herczyk_huza`.`car`.`Make` AS `Make`,`projekt_dylag_herczyk_huza`.`car`.`Model` AS `Model`,count(`projekt_dylag_herczyk_huza`.`rentalcar`.`RentalID`) AS `TimesRented` from (`car` left join `rentalcar` on(`projekt_dylag_herczyk_huza`.`car`.`CarID` = `projekt_dylag_herczyk_huza`.`rentalcar`.`CarID`)) group by `projekt_dylag_herczyk_huza`.`car`.`CarID` order by count(`projekt_dylag_herczyk_huza`.`rentalcar`.`RentalID`) desc;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_PopularCars` AS select `c`.`CarID` AS `CarID`,`c`.`LicensePlateNumber` AS `LicensePlateNumber`,`m`.`MakeName` AS `Make`,`c`.`Model` AS `Model`,count(`rc`.`RentalID`) AS `TimesRented` from ((`car` `c` left join `make` `m` on(`c`.`MakeID` = `m`.`MakeID`)) left join `rentalcar` `rc` on(`c`.`CarID` = `rc`.`CarID`)) group by `c`.`CarID`,`c`.`LicensePlateNumber`,`m`.`MakeName`,`c`.`Model` order by count(`rc`.`RentalID`) desc;
 
 -- ----------------------------
 -- View structure for v_RevenueByMonth
@@ -838,7 +836,7 @@ CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_RevenueByMonth` AS sel
 -- View structure for v_UpcomingReservations
 -- ----------------------------
 DROP VIEW IF EXISTS `v_UpcomingReservations`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_UpcomingReservations` AS select `res`.`ReservationID` AS `ReservationID`,`res`.`ReservationDate` AS `ReservationDate`,`res`.`PickupDate` AS `PickupDate`,`res`.`ReturnDate` AS `ReturnDate`,`c`.`CustomerID` AS `CustomerID`,`c`.`FirstName` AS `CustomerFirstName`,`c`.`LastName` AS `CustomerLastName`,`c`.`Email` AS `CustomerEmail`,`car`.`CarID` AS `CarID`,`car`.`LicensePlateNumber` AS `LicensePlateNumber`,`projekt_dylag_herczyk_huza`.`car`.`Make` AS `Make`,`projekt_dylag_herczyk_huza`.`car`.`Model` AS `Model` from (((`reservation` `res` join `customer` `c` on(`res`.`CustomerID` = `c`.`CustomerID`)) join `reservationcar` `rc` on(`res`.`ReservationID` = `rc`.`ReservationID`)) join `car` on(`rc`.`CarID` = `projekt_dylag_herczyk_huza`.`car`.`CarID`)) where `res`.`PickupDate` between curdate() and curdate() + interval 7 day and `res`.`ReservationStatus` = 'Active' order by `res`.`PickupDate`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_UpcomingReservations` AS select `res`.`ReservationID` AS `ReservationID`,`res`.`ReservationDate` AS `ReservationDate`,`res`.`PickupDate` AS `PickupDate`,`res`.`ReturnDate` AS `ReturnDate`,`c`.`CustomerID` AS `CustomerID`,`c`.`FirstName` AS `CustomerFirstName`,`c`.`LastName` AS `CustomerLastName`,`c`.`Email` AS `CustomerEmail`,`car`.`CarID` AS `CarID`,`car`.`LicensePlateNumber` AS `LicensePlateNumber`,`m`.`MakeName` AS `Make`,`car`.`Model` AS `Model` from ((((`reservation` `res` join `customer` `c` on(`res`.`CustomerID` = `c`.`CustomerID`)) join `reservationcar` `rc` on(`res`.`ReservationID` = `rc`.`ReservationID`)) join `car` on(`rc`.`CarID` = `car`.`CarID`)) left join `make` `m` on(`car`.`MakeID` = `m`.`MakeID`)) where `res`.`PickupDate` between curdate() and curdate() + interval 7 day and `res`.`ReservationStatus` = 'Active' order by `res`.`PickupDate`;
 
 -- ----------------------------
 -- Procedure structure for AddCustomer
@@ -886,6 +884,47 @@ BEGIN
     END IF;
 
     RETURN ROUND(TotalNetAmount * DiscountAmount / 100, 2);
+END
+;;
+delimiter ;
+
+-- ----------------------------
+-- Procedure structure for UpdateInvoiceStatus
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `UpdateInvoiceStatus`;
+delimiter ;;
+CREATE DEFINER=`huza_martyna`@`%` PROCEDURE `UpdateInvoiceStatus`(IN p_invoice_id INT)
+BEGIN
+  DECLARE total_payments DECIMAL(8,2);
+  DECLARE invoice_total DECIMAL(8,2);
+
+  SELECT SUM(Amount) INTO total_payments FROM payment WHERE InvoiceID = p_invoice_id;
+  SELECT TotalGrossAmount INTO invoice_total FROM invoice WHERE InvoiceID = p_invoice_id;
+
+  IF total_payments >= invoice_total THEN
+    UPDATE invoice SET InvoiceStatus = 'Paid' WHERE InvoiceID = p_invoice_id;
+  ELSEIF total_payments > 0 THEN
+    UPDATE invoice SET InvoiceStatus = 'Unpaid' WHERE InvoiceID = p_invoice_id;
+  END IF;
+END
+;;
+delimiter ;
+
+-- ----------------------------
+-- Triggers structure for table payment
+-- ----------------------------
+DROP TRIGGER IF EXISTS `ValidatePayment`;
+delimiter ;;
+CREATE TRIGGER `ValidatePayment` AFTER INSERT ON `payment` FOR EACH ROW BEGIN
+  DECLARE total_payments DECIMAL(8,2);
+  DECLARE invoice_total DECIMAL(8,2);
+
+  SELECT SUM(Amount) INTO total_payments FROM payment WHERE InvoiceID = NEW.InvoiceID;
+  SELECT TotalGrossAmount INTO invoice_total FROM invoice WHERE InvoiceID = NEW.InvoiceID;
+
+  IF total_payments > invoice_total THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Suma płatności przekracza sumę na fakturze.';
+  END IF;
 END
 ;;
 delimiter ;
