@@ -11,7 +11,7 @@
  Target Server Version : 110601 (11.6.1-MariaDB)
  File Encoding         : 65001
 
- Date: 03/12/2024 18:49:48
+ Date: 13/12/2024 21:20:57
 */
 
 SET NAMES utf8mb4;
@@ -50,7 +50,7 @@ CREATE TABLE `car`  (
   `Year` smallint(4) UNSIGNED NOT NULL,
   `Color` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
   `Mileage` mediumint(8) UNSIGNED NULL DEFAULT NULL,
-  `CarStatus` enum('Available','Rented','Under Maintenance') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT 'Available',
+  `CarStatus` enum('Available','Rented','Under Maintenance','To Be Scrapped') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT 'Available',
   `VehicleTypeID` smallint(5) UNSIGNED NOT NULL,
   `FuelTypeID` tinyint(3) UNSIGNED NOT NULL,
   `OC_DueDate` date NULL DEFAULT NULL,
@@ -260,7 +260,7 @@ CREATE TABLE `employee`  (
   `PhoneNumber` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
   `HireDate` date NULL DEFAULT NULL,
   `EndDate` date NULL DEFAULT NULL,
-  `AccountStatus` enum('Aktywne','Nieaktywne') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT 'Aktywne',
+  `AccountStatus` enum('Aktywne','Nieaktywne','W trakcie weryfikacji') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT 'Aktywne',
   `PasswordHash` varchar(60) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   PRIMARY KEY (`EmployeeID`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
@@ -774,33 +774,74 @@ INSERT INTO `rolepermission` VALUES (4, 14);
 INSERT INTO `rolepermission` VALUES (6, 14);
 
 -- ----------------------------
+-- Table structure for transmissiontype
+-- ----------------------------
+DROP TABLE IF EXISTS `transmissiontype`;
+CREATE TABLE `transmissiontype`  (
+  `TransmissionTypeID` tinyint(3) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `TransmissionTypeName` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  PRIMARY KEY (`TransmissionTypeID`) USING BTREE,
+  UNIQUE INDEX `TransmissionTypeName`(`TransmissionTypeName` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of transmissiontype
+-- ----------------------------
+INSERT INTO `transmissiontype` VALUES (1, 'Automatic');
+INSERT INTO `transmissiontype` VALUES (2, 'Manual');
+
+-- ----------------------------
+-- Table structure for vehiclecategory
+-- ----------------------------
+DROP TABLE IF EXISTS `vehiclecategory`;
+CREATE TABLE `vehiclecategory`  (
+  `CategoryID` tinyint(3) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `CategoryName` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `Description` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`CategoryID`) USING BTREE,
+  UNIQUE INDEX `CategoryName`(`CategoryName` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of vehiclecategory
+-- ----------------------------
+INSERT INTO `vehiclecategory` VALUES (1, 'A', 'Auto kompaktowe');
+INSERT INTO `vehiclecategory` VALUES (2, 'B', 'Auto średnie');
+INSERT INTO `vehiclecategory` VALUES (3, 'C', 'SUV');
+INSERT INTO `vehiclecategory` VALUES (4, 'D', 'Luksusowy sedan');
+INSERT INTO `vehiclecategory` VALUES (5, 'E', 'Miniwan');
+
+-- ----------------------------
 -- Table structure for vehicletype
 -- ----------------------------
 DROP TABLE IF EXISTS `vehicletype`;
 CREATE TABLE `vehicletype`  (
   `VehicleTypeID` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `Category` enum('A','B','C','D','E') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
-  `Description` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `CategoryID` tinyint(3) UNSIGNED NOT NULL,
   `SeatingCapacity` smallint(2) UNSIGNED NOT NULL,
   `LuggageCapacity` smallint(2) UNSIGNED NULL DEFAULT NULL,
-  `TransmissionType` enum('Automatic','Manual') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `TransmissionTypeID` tinyint(3) UNSIGNED NOT NULL,
   `MinimumDrivingExperience` smallint(2) UNSIGNED NULL DEFAULT 0,
-  PRIMARY KEY (`VehicleTypeID`) USING BTREE
+  PRIMARY KEY (`VehicleTypeID`) USING BTREE,
+  INDEX `TransmissionTypeID`(`TransmissionTypeID` ASC) USING BTREE,
+  INDEX `CategoryID`(`CategoryID` ASC) USING BTREE,
+  CONSTRAINT `vehicletype_ibfk_1` FOREIGN KEY (`TransmissionTypeID`) REFERENCES `transmissiontype` (`TransmissionTypeID`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `vehicletype_ibfk_2` FOREIGN KEY (`CategoryID`) REFERENCES `vehiclecategory` (`CategoryID`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of vehicletype
 -- ----------------------------
-INSERT INTO `vehicletype` VALUES (1, 'A', 'Auto kompaktowe', 4, 200, 'Manual', 0);
-INSERT INTO `vehicletype` VALUES (2, 'B', 'Auto średnie', 5, 400, 'Manual', 1);
-INSERT INTO `vehicletype` VALUES (3, 'C', 'SUV', 5, 500, 'Automatic', 2);
-INSERT INTO `vehicletype` VALUES (4, 'D', 'Luksusowy sedan', 5, 450, 'Automatic', 3);
-INSERT INTO `vehicletype` VALUES (5, 'E', 'Miniwan', 7, 650, 'Automatic', 4);
-INSERT INTO `vehicletype` VALUES (6, 'A', 'Mały hatchback', 4, 150, 'Manual', 0);
-INSERT INTO `vehicletype` VALUES (7, 'B', 'Sedan', 5, 350, 'Manual', 1);
-INSERT INTO `vehicletype` VALUES (8, 'C', 'Duży SUV', 7, 600, 'Automatic', 2);
-INSERT INTO `vehicletype` VALUES (9, 'D', 'Luksusowy coupe', 2, 100, 'Automatic', 3);
-INSERT INTO `vehicletype` VALUES (10, 'E', 'Minibus', 9, 700, 'Manual', 5);
+INSERT INTO `vehicletype` VALUES (1, 1, 4, 200, 1, 0);
+INSERT INTO `vehicletype` VALUES (2, 2, 5, 400, 1, 1);
+INSERT INTO `vehicletype` VALUES (3, 4, 5, 500, 2, 2);
+INSERT INTO `vehicletype` VALUES (4, 2, 5, 450, 2, 3);
+INSERT INTO `vehicletype` VALUES (5, 5, 7, 650, 1, 4);
+INSERT INTO `vehicletype` VALUES (6, 1, 4, 150, 2, 0);
+INSERT INTO `vehicletype` VALUES (7, 2, 5, 350, 1, 1);
+INSERT INTO `vehicletype` VALUES (8, 5, 7, 600, 2, 2);
+INSERT INTO `vehicletype` VALUES (9, 2, 2, 100, 1, 3);
+INSERT INTO `vehicletype` VALUES (10, 3, 9, 700, 2, 5);
 
 -- ----------------------------
 -- View structure for v_ActiveReservations
