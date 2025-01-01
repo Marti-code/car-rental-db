@@ -11,7 +11,7 @@
  Target Server Version : 110601 (11.6.1-MariaDB)
  File Encoding         : 65001
 
- Date: 24/12/2024 21:40:34
+ Date: 25/12/2024 13:02:33
 */
 
 SET NAMES utf8mb4;
@@ -25,6 +25,8 @@ CREATE TABLE `amenity`  (
   `AmenityID` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT,
   `AmenityName` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
   `AmenityPrice` decimal(7, 2) NOT NULL DEFAULT 0.00,
+  `CreatedAt` timestamp NULL DEFAULT current_timestamp(),
+  `UpdatedAt` timestamp NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`AmenityID`) USING BTREE,
   UNIQUE INDEX `AmenityName`(`AmenityName` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
@@ -32,10 +34,29 @@ CREATE TABLE `amenity`  (
 -- ----------------------------
 -- Records of amenity
 -- ----------------------------
-INSERT INTO `amenity` VALUES (1, 'fotelik dziecięcy', 10.00);
-INSERT INTO `amenity` VALUES (2, 'przyczepa mała', 35.00);
-INSERT INTO `amenity` VALUES (3, 'przyczepa duża', 50.00);
-INSERT INTO `amenity` VALUES (4, 'uchwyt na rowery', 15.00);
+INSERT INTO `amenity` VALUES (1, 'fotelik dziecięcy', 10.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `amenity` VALUES (2, 'przyczepa mała', 35.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `amenity` VALUES (3, 'przyczepa duża', 50.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `amenity` VALUES (4, 'uchwyt na rowery', 15.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+
+-- ----------------------------
+-- Table structure for amenity_audit
+-- ----------------------------
+DROP TABLE IF EXISTS `amenity_audit`;
+CREATE TABLE `amenity_audit`  (
+  `AuditID` int(11) NOT NULL AUTO_INCREMENT,
+  `AmenityID` int(11) NOT NULL,
+  `AmenityName` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `AmenityPrice` decimal(7, 2) NULL DEFAULT NULL,
+  `ChangeType` enum('INSERT','UPDATE','DELETE') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `ChangedBy` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `ChangeTimestamp` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`AuditID`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of amenity_audit
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for car
@@ -57,6 +78,8 @@ CREATE TABLE `car`  (
   `AC_DueDate` date NULL DEFAULT NULL,
   `CanGoAbroad` enum('Tak','Nie') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT 'Tak',
   `DailyRate` decimal(7, 2) NOT NULL DEFAULT 0.00,
+  `CreatedAt` timestamp NULL DEFAULT current_timestamp(),
+  `UpdatedAt` timestamp NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`CarID`) USING BTREE,
   UNIQUE INDEX `LicensePlateNumber`(`LicensePlateNumber` ASC) USING BTREE,
   UNIQUE INDEX `VIN`(`VIN` ASC) USING BTREE,
@@ -71,26 +94,50 @@ CREATE TABLE `car`  (
 -- ----------------------------
 -- Records of car
 -- ----------------------------
-INSERT INTO `car` VALUES (1, 'KRA12345', '1HGCM82633A123456', 0, 'Corolla', 2018, 'Czerwony', 50000, 'Available', 1, 1, '2024-06-15', '2025-06-15', 'Tak', 150.00);
-INSERT INTO `car` VALUES (2, 'KRK98765', '1HGCM82633A987654', 0, 'Fiesta', 2019, 'Niebieski', 30000, 'Available', 2, 1, '2024-07-20', '2025-07-20', 'Nie', 120.00);
-INSERT INTO `car` VALUES (3, 'WAW54321', '1HGCM82633A543210', 0, 'X5', 2020, 'Czarny', 20000, 'Under Maintenance', 3, 2, '2024-08-01', '2025-08-01', 'Tak', 300.00);
-INSERT INTO `car` VALUES (4, 'GD12345', '1HGCM82633A321654', 0, 'A4', 2017, 'Biały', 60000, 'Available', 1, 1, '2024-04-10', '2025-04-10', 'Tak', 180.00);
-INSERT INTO `car` VALUES (5, 'WRO67890', '1HGCM82633A567890', 0, 'C-Class', 2021, 'Szary', 15000, 'Available', 4, 3, '2024-05-15', '2025-05-15', 'Tak', 250.00);
-INSERT INTO `car` VALUES (6, 'POZ11111', '1HGCM82633A111111', 0, 'Golf', 2015, 'Zielony', 80000, 'Available', 2, 1, '2024-09-05', '2025-09-05', 'Nie', 100.00);
-INSERT INTO `car` VALUES (7, 'LOD22222', '1HGCM82633A222222', 0, 'Octavia', 2016, 'Niebieski', 70000, 'Under Maintenance', 2, 1, '2024-02-25', '2025-02-25', 'Tak', 110.00);
-INSERT INTO `car` VALUES (8, 'GDA33333', '1HGCM82633A333333', 0, 'Civic', 2018, 'Srebrny', 45000, 'Available', 1, 1, '2024-12-10', '2025-12-10', 'Tak', 130.00);
-INSERT INTO `car` VALUES (9, 'SZC44444', '1HGCM82633A444444', 0, 'i30', 2022, 'Biały', 10000, 'Available', 2, 1, '2024-03-30', '2025-03-30', 'Tak', 160.00);
-INSERT INTO `car` VALUES (10, 'KAT55555', '1HGCM82633A555555', 0, '208', 2019, 'Żółty', 25000, 'Available', 2, 1, '2024-08-17', '2025-08-17', 'Tak', 140.00);
-INSERT INTO `car` VALUES (11, 'KRK66666', '1HGCM82633A666666', 0, 'Qashqai', 2021, 'Czerwony', 18000, 'Rented', 3, 2, '2024-11-10', '2025-11-10', 'Tak', 220.00);
-INSERT INTO `car` VALUES (12, 'WAW77777', '1HGCM82633A777777', 0, 'Sportage', 2020, 'Czarny', 32000, 'Available', 3, 2, '2024-01-15', '2025-01-15', 'Nie', 200.00);
-INSERT INTO `car` VALUES (13, 'GD88888', '1HGCM82633A888888', 0, 'CX-5', 2018, 'Szary', 55000, 'Under Maintenance', 3, 2, '2024-06-22', '2025-06-22', 'Tak', 190.00);
-INSERT INTO `car` VALUES (14, 'POZ99999', '1HGCM82633A999999', 0, 'Clio', 2016, 'Niebieski', 72000, 'Available', 2, 1, '2024-10-05', '2025-10-05', 'Tak', 110.00);
-INSERT INTO `car` VALUES (15, 'LOD10101', '1HGCM82633A101010', 0, 'Yaris', 2021, 'Zielony', 22000, 'Rented', 2, 1, '2024-04-20', '2025-04-20', 'Tak', 140.00);
-INSERT INTO `car` VALUES (16, 'GDA20202', '1HGCM82633A202020', 0, 'Focus', 2019, 'Srebrny', 39000, 'Available', 2, 1, '2024-07-15', '2025-07-15', 'Tak', 130.00);
-INSERT INTO `car` VALUES (17, 'SZC30303', '1HGCM82633A303030', 0, 'Astra', 2020, 'Biały', 27000, 'Available', 2, 1, '2024-05-10', '2025-05-10', 'Nie', 125.00);
-INSERT INTO `car` VALUES (18, 'KAT40404', '1HGCM82633A404040', 0, '3 Series', 2018, 'Żółty', 60000, 'Rented', 4, 2, '2024-06-18', '2025-06-18', 'Tak', 250.00);
-INSERT INTO `car` VALUES (19, 'KRK50505', '1HGCM82633A505050', 0, 'E-Class', 2022, 'Szary', 14000, 'Available', 4, 3, '2024-12-15', '2025-12-15', 'Nie', 280.00);
-INSERT INTO `car` VALUES (20, 'WAW60606', '1HGCM82633A606060', 0, 'Q5', 2017, 'Żółty', 53000, 'Under Maintenance', 3, 2, '2024-08-01', '2025-08-01', 'Tak', 270.00);
+INSERT INTO `car` VALUES (1, 'KRA12345', '1HGCM82633A123456', 0, 'Corolla', 2018, 'Czerwony', 50000, 'Available', 1, 1, '2024-06-15', '2025-06-15', 'Tak', 150.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (2, 'KRK98765', '1HGCM82633A987654', 0, 'Fiesta', 2019, 'Niebieski', 30000, 'Available', 2, 1, '2024-07-20', '2025-07-20', 'Nie', 120.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (3, 'WAW54321', '1HGCM82633A543210', 0, 'X5', 2020, 'Czarny', 20000, 'Under Maintenance', 3, 2, '2024-08-01', '2025-08-01', 'Tak', 300.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (4, 'GD12345', '1HGCM82633A321654', 0, 'A4', 2017, 'Biały', 60000, 'Available', 1, 1, '2024-04-10', '2025-04-10', 'Tak', 180.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (5, 'WRO67890', '1HGCM82633A567890', 0, 'C-Class', 2021, 'Szary', 15000, 'Available', 4, 3, '2024-05-15', '2025-05-15', 'Tak', 250.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (6, 'POZ11111', '1HGCM82633A111111', 0, 'Golf', 2015, 'Zielony', 80000, 'Available', 2, 1, '2024-09-05', '2025-09-05', 'Nie', 100.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (7, 'LOD22222', '1HGCM82633A222222', 0, 'Octavia', 2016, 'Niebieski', 70000, 'Under Maintenance', 2, 1, '2024-02-25', '2025-02-25', 'Tak', 110.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (8, 'GDA33333', '1HGCM82633A333333', 0, 'Civic', 2018, 'Srebrny', 45000, 'Available', 1, 1, '2024-12-10', '2025-12-10', 'Tak', 130.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (9, 'SZC44444', '1HGCM82633A444444', 0, 'i30', 2022, 'Biały', 10000, 'Available', 2, 1, '2024-03-30', '2025-03-30', 'Tak', 160.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (10, 'KAT55555', '1HGCM82633A555555', 0, '208', 2019, 'Żółty', 25000, 'Available', 2, 1, '2024-08-17', '2025-08-17', 'Tak', 140.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (11, 'KRK66666', '1HGCM82633A666666', 0, 'Qashqai', 2021, 'Czerwony', 18000, 'Rented', 3, 2, '2024-11-10', '2025-11-10', 'Tak', 220.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (12, 'WAW77777', '1HGCM82633A777777', 0, 'Sportage', 2020, 'Czarny', 32000, 'Available', 3, 2, '2024-01-15', '2025-01-15', 'Nie', 200.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (13, 'GD88888', '1HGCM82633A888888', 0, 'CX-5', 2018, 'Szary', 55000, 'Under Maintenance', 3, 2, '2024-06-22', '2025-06-22', 'Tak', 190.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (14, 'POZ99999', '1HGCM82633A999999', 0, 'Clio', 2016, 'Niebieski', 72000, 'Available', 2, 1, '2024-10-05', '2025-10-05', 'Tak', 110.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (15, 'LOD10101', '1HGCM82633A101010', 0, 'Yaris', 2021, 'Zielony', 22000, 'Rented', 2, 1, '2024-04-20', '2025-04-20', 'Tak', 140.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (16, 'GDA20202', '1HGCM82633A202020', 0, 'Focus', 2019, 'Srebrny', 39000, 'Available', 2, 1, '2024-07-15', '2025-07-15', 'Tak', 130.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (17, 'SZC30303', '1HGCM82633A303030', 0, 'Astra', 2020, 'Biały', 27000, 'Available', 2, 1, '2024-05-10', '2025-05-10', 'Nie', 125.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (18, 'KAT40404', '1HGCM82633A404040', 0, '3 Series', 2018, 'Żółty', 60000, 'Rented', 4, 2, '2024-06-18', '2025-06-18', 'Tak', 250.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (19, 'KRK50505', '1HGCM82633A505050', 0, 'E-Class', 2022, 'Szary', 14000, 'Available', 4, 3, '2024-12-15', '2025-12-15', 'Nie', 280.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+INSERT INTO `car` VALUES (20, 'WAW60606', '1HGCM82633A606060', 0, 'Q5', 2017, 'Żółty', 53000, 'Under Maintenance', 3, 2, '2024-08-01', '2025-08-01', 'Tak', 270.00, '2024-12-25 11:47:10', '2024-12-25 11:47:10');
+
+-- ----------------------------
+-- Table structure for car_audit
+-- ----------------------------
+DROP TABLE IF EXISTS `car_audit`;
+CREATE TABLE `car_audit`  (
+  `AuditID` int(11) NOT NULL AUTO_INCREMENT,
+  `CarID` int(11) NOT NULL,
+  `LicensePlateNumber` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `VIN` varchar(17) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `MakeID` int(11) NULL DEFAULT NULL,
+  `Model` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `Year` smallint(6) NULL DEFAULT NULL,
+  `CarStatus` enum('Available','Rented','Under Maintenance','To Be Scrapped') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `DailyRate` decimal(7, 2) NULL DEFAULT NULL,
+  `ChangeType` enum('INSERT','UPDATE','DELETE') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `ChangedBy` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `ChangeTimestamp` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`AuditID`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of car_audit
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for caramenity
@@ -262,27 +309,52 @@ CREATE TABLE `employee`  (
   `EndDate` date NULL DEFAULT NULL,
   `AccountStatus` enum('Aktywne','Nieaktywne','W trakcie weryfikacji') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT 'Aktywne',
   `PasswordHash` varchar(60) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `CreatedAt` timestamp NULL DEFAULT current_timestamp(),
+  `UpdatedAt` timestamp NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`EmployeeID`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of employee
 -- ----------------------------
-INSERT INTO `employee` VALUES (1, 'Marek', 'Kowalczyk', 'marek.kowalczyk@example.com', '501 234 567', NULL, NULL, 'Aktywne', 'Qwerty@123');
-INSERT INTO `employee` VALUES (2, 'Anna', 'Nowak', 'anna.nowak@example.com', '502 345 678', NULL, NULL, 'Aktywne', 'Passw0rd!21');
-INSERT INTO `employee` VALUES (3, 'Tomasz', 'Wiśniewski', 'tomasz.wisniewski@example.com', '503 456 789', NULL, NULL, 'Aktywne', 'Secure#456');
-INSERT INTO `employee` VALUES (4, 'Katarzyna', 'Wójcik', 'katarzyna.wojcik@example.com', '504 567 890', NULL, NULL, 'Aktywne', 'Kasia2024!');
-INSERT INTO `employee` VALUES (5, 'Piotr', 'Lewandowski', 'piotr.lewandowski@example.com', '505 678 901', NULL, NULL, 'Aktywne', 'Lewy%2024');
-INSERT INTO `employee` VALUES (6, 'Małgorzata', 'Zielińska', 'malgorzata.zielinska@example.com', '506 789 012', NULL, NULL, 'Aktywne', 'Gosia$2023');
-INSERT INTO `employee` VALUES (7, 'Michał', 'Szymański', 'michal.szymanski@example.com', '507 890 123', NULL, NULL, 'Aktywne', 'Mik1234@#');
-INSERT INTO `employee` VALUES (8, 'Agnieszka', 'Krawczyk', 'agnieszka.krawczyk@example.com', '508 901 234', NULL, NULL, 'Aktywne', 'Aggie@998');
-INSERT INTO `employee` VALUES (9, 'Krzysztof', 'Dąbrowski', 'krzysztof.dabrowski@example.com', '509 012 345', NULL, NULL, 'Aktywne', 'Krzy$890');
-INSERT INTO `employee` VALUES (10, 'Paulina', 'Wojciechowska', 'paulina.wojciechowska@example.com', '510 123 456', NULL, NULL, 'Aktywne', 'Paula*567');
-INSERT INTO `employee` VALUES (11, 'Jacek', 'Pawlak', 'jacek.pawlak@example.com', '511 234 567', NULL, NULL, 'Aktywne', 'Jacek!321');
-INSERT INTO `employee` VALUES (12, 'Dorota', 'Mazur', 'dorota.mazur@example.com', '512 345 678', NULL, NULL, 'Aktywne', 'Dorotka#456');
-INSERT INTO `employee` VALUES (13, 'Łukasz', 'Zając', 'lukasz.zajac@example.com', '513 456 789', NULL, NULL, 'Aktywne', 'Lukasz@789');
-INSERT INTO `employee` VALUES (14, 'Ewa', 'Pietrzak', 'ewa.pietrzak@example.com', '514 567 890', NULL, NULL, 'Aktywne', 'Ewa%2025');
-INSERT INTO `employee` VALUES (15, 'Bartek', 'Górski', 'bartek.gorski@example.com', '515 678 901', NULL, NULL, 'Aktywne', 'Gorski$998');
+INSERT INTO `employee` VALUES (1, 'Marek', 'Kowalczyk', 'marek.kowalczyk@example.com', '501 234 567', NULL, NULL, 'Aktywne', 'Qwerty@123', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `employee` VALUES (2, 'Anna', 'Nowak', 'anna.nowak@example.com', '502 345 678', NULL, NULL, 'Aktywne', 'Passw0rd!21', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `employee` VALUES (3, 'Tomasz', 'Wiśniewski', 'tomasz.wisniewski@example.com', '503 456 789', NULL, NULL, 'Aktywne', 'Secure#456', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `employee` VALUES (4, 'Katarzyna', 'Wójcik', 'katarzyna.wojcik@example.com', '504 567 890', NULL, NULL, 'Aktywne', 'Kasia2024!', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `employee` VALUES (5, 'Piotr', 'Lewandowski', 'piotr.lewandowski@example.com', '505 678 901', NULL, NULL, 'Aktywne', 'Lewy%2024', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `employee` VALUES (6, 'Małgorzata', 'Zielińska', 'malgorzata.zielinska@example.com', '506 789 012', NULL, NULL, 'Aktywne', 'Gosia$2023', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `employee` VALUES (7, 'Michał', 'Szymański', 'michal.szymanski@example.com', '507 890 123', NULL, NULL, 'Aktywne', 'Mik1234@#', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `employee` VALUES (8, 'Agnieszka', 'Krawczyk', 'agnieszka.krawczyk@example.com', '508 901 234', NULL, NULL, 'Aktywne', 'Aggie@998', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `employee` VALUES (9, 'Krzysztof', 'Dąbrowski', 'krzysztof.dabrowski@example.com', '509 012 345', NULL, NULL, 'Aktywne', 'Krzy$890', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `employee` VALUES (10, 'Paulina', 'Wojciechowska', 'paulina.wojciechowska@example.com', '510 123 456', NULL, NULL, 'Aktywne', 'Paula*567', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `employee` VALUES (11, 'Jacek', 'Pawlak', 'jacek.pawlak@example.com', '511 234 567', NULL, NULL, 'Aktywne', 'Jacek!321', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `employee` VALUES (12, 'Dorota', 'Mazur', 'dorota.mazur@example.com', '512 345 678', NULL, NULL, 'Aktywne', 'Dorotka#456', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `employee` VALUES (13, 'Łukasz', 'Zając', 'lukasz.zajac@example.com', '513 456 789', NULL, NULL, 'Aktywne', 'Lukasz@789', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `employee` VALUES (14, 'Ewa', 'Pietrzak', 'ewa.pietrzak@example.com', '514 567 890', NULL, NULL, 'Aktywne', 'Ewa%2025', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `employee` VALUES (15, 'Bartek', 'Górski', 'bartek.gorski@example.com', '515 678 901', NULL, NULL, 'Aktywne', 'Gorski$998', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+
+-- ----------------------------
+-- Table structure for employee_audit
+-- ----------------------------
+DROP TABLE IF EXISTS `employee_audit`;
+CREATE TABLE `employee_audit`  (
+  `AuditID` int(11) NOT NULL AUTO_INCREMENT,
+  `EmployeeID` int(11) NOT NULL,
+  `FirstName` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `LastName` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `Email` varchar(320) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `PhoneNumber` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `AccountStatus` enum('Active','Inactive','Pending Verification') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `PasswordHash` varchar(60) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `ChangeType` enum('INSERT','UPDATE','DELETE') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `ChangedBy` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `ChangeTimestamp` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`AuditID`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of employee_audit
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for employeerole
@@ -415,6 +487,9 @@ CREATE TABLE `invoice`  (
   PRIMARY KEY (`InvoiceID`) USING BTREE,
   INDEX `FK_Invoice_Customer`(`CustomerID` ASC) USING BTREE,
   INDEX `FK_Invoice_Employee`(`EmployeeID` ASC) USING BTREE,
+  INDEX `idx_invoice_customer`(`CustomerID` ASC) USING BTREE,
+  INDEX `idx_invoice_dates`(`IssueDate` ASC, `DueDate` ASC) USING BTREE,
+  INDEX `idx_invoice_status`(`InvoiceStatus` ASC) USING BTREE,
   CONSTRAINT `FK_Invoice_Customer` FOREIGN KEY (`CustomerID`) REFERENCES `customer` (`CustomerID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `FK_Invoice_Employee` FOREIGN KEY (`EmployeeID`) REFERENCES `employee` (`EmployeeID`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
@@ -444,7 +519,8 @@ CREATE TABLE `invoiceposition`  (
   `VATAmount` decimal(10, 2) GENERATED ALWAYS AS (`NetAmount` * `VATRate` / 100) PERSISTENT,
   `GrossAmount` decimal(10, 2) GENERATED ALWAYS AS (`NetAmount` + `VATAmount`) PERSISTENT,
   PRIMARY KEY (`InvoicePositionID`) USING BTREE,
-  INDEX `InvoiceID`(`InvoiceID` ASC) USING BTREE,
+  INDEX `idx_invoiceposition_invoice`(`InvoiceID` ASC) USING BTREE,
+  INDEX `idx_invoiceposition_product`(`ProductType` ASC, `ProductReferenceID` ASC) USING BTREE,
   CONSTRAINT `invoiceposition_ibfk_1` FOREIGN KEY (`InvoiceID`) REFERENCES `invoice` (`InvoiceID`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `CONSTRAINT_1` CHECK (`Quantity` > 0)
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
@@ -507,9 +583,13 @@ CREATE TABLE `payment`  (
   `TransactionID` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
   `InvoiceID` int(10) UNSIGNED NOT NULL,
   `PaymentMethodID` tinyint(3) UNSIGNED NOT NULL,
+  `CreatedAt` timestamp NULL DEFAULT current_timestamp(),
+  `UpdatedAt` timestamp NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`PaymentID`) USING BTREE,
   INDEX `FK_Payment_Invoice`(`InvoiceID` ASC) USING BTREE,
   INDEX `FK_Payment_PaymentMethod`(`PaymentMethodID` ASC) USING BTREE,
+  INDEX `idx_payment_invoice`(`InvoiceID` ASC) USING BTREE,
+  INDEX `idx_payment_date`(`PaymentDate` ASC) USING BTREE,
   CONSTRAINT `FK_Payment_Invoice` FOREIGN KEY (`InvoiceID`) REFERENCES `invoice` (`InvoiceID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `FK_Payment_PaymentMethod` FOREIGN KEY (`PaymentMethodID`) REFERENCES `paymentmethod` (`PaymentMethodID`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
@@ -517,9 +597,34 @@ CREATE TABLE `payment`  (
 -- ----------------------------
 -- Records of payment
 -- ----------------------------
-INSERT INTO `payment` VALUES (1, '2024-11-07', 0.00, 'Completed', '123', 1, 3);
-INSERT INTO `payment` VALUES (2, '2024-11-27', 0.00, 'Pending', '321', 2, 2);
-INSERT INTO `payment` VALUES (3, '2024-11-27', 0.00, 'Pending', '942', 3, 2);
+INSERT INTO `payment` VALUES (1, '2024-11-07', 0.00, 'Completed', '123', 1, 3, '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `payment` VALUES (2, '2024-11-27', 0.00, 'Pending', '321', 2, 2, '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `payment` VALUES (3, '2024-11-27', 0.00, 'Pending', '942', 3, 2, '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+
+-- ----------------------------
+-- Table structure for payment_audit
+-- ----------------------------
+DROP TABLE IF EXISTS `payment_audit`;
+CREATE TABLE `payment_audit`  (
+  `AuditID` int(11) NOT NULL AUTO_INCREMENT,
+  `PaymentID` int(11) NOT NULL,
+  `InvoiceID` int(11) NOT NULL,
+  `Amount` decimal(8, 2) NOT NULL,
+  `PaymentStatus` enum('Completed','Pending','Failed') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `PaymentDate` date NOT NULL,
+  `TransactionID` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `PaymentMethodID` tinyint(4) NOT NULL,
+  `ChangeType` enum('INSERT','UPDATE','DELETE') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `ChangedBy` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `ChangeTimestamp` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`AuditID`) USING BTREE,
+  INDEX `idx_payment_audit_timestamp`(`ChangeTimestamp` ASC) USING BTREE,
+  INDEX `idx_payment_audit_payment`(`PaymentID` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of payment_audit
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for paymentmethod
@@ -584,9 +689,13 @@ CREATE TABLE `rental`  (
   `ReservationID` int(10) UNSIGNED NULL DEFAULT NULL,
   `DiscountApplied` decimal(7, 2) UNSIGNED NULL DEFAULT 0.00,
   `Fine` decimal(7, 2) NOT NULL DEFAULT 0.00,
+  `CreatedAt` timestamp NULL DEFAULT current_timestamp(),
+  `UpdatedAt` timestamp NULL DEFAULT current_timestamp() ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`RentalID`) USING BTREE,
   INDEX `FK_Rental_Invoice`(`InvoiceID` ASC) USING BTREE,
   INDEX `FK_Rental_Reservation`(`ReservationID` ASC) USING BTREE,
+  INDEX `idx_rental_dates`(`RentalDate` ASC, `ExpectedReturnDate` ASC) USING BTREE,
+  INDEX `idx_rental_invoice`(`InvoiceID` ASC) USING BTREE,
   CONSTRAINT `FK_Rental_Invoice` FOREIGN KEY (`InvoiceID`) REFERENCES `invoice` (`InvoiceID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `FK_Rental_Reservation` FOREIGN KEY (`ReservationID`) REFERENCES `reservation` (`ReservationID`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
@@ -594,9 +703,36 @@ CREATE TABLE `rental`  (
 -- ----------------------------
 -- Records of rental
 -- ----------------------------
-INSERT INTO `rental` VALUES (1, '2024-09-05', '2024-09-07', '2024-09-07', 450.00, 103.50, 553.50, 1, 4, 0.00, 0.00);
-INSERT INTO `rental` VALUES (2, '2024-01-15', '2024-01-30', '2024-01-30', 1650.00, 379.50, 2029.50, 2, 5, 0.00, 0.00);
-INSERT INTO `rental` VALUES (3, '2024-11-04', '2024-11-08', '2024-11-08', 9000.00, 161.00, NULL, NULL, 1, 0.00, 0.00);
+INSERT INTO `rental` VALUES (1, '2024-09-05', '2024-09-07', '2024-09-07', 450.00, 103.50, 553.50, 1, 4, 0.00, 0.00, '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `rental` VALUES (2, '2024-01-15', '2024-01-30', '2024-01-30', 1650.00, 379.50, 2029.50, 2, 5, 0.00, 0.00, '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `rental` VALUES (3, '2024-11-04', '2024-11-08', '2024-11-08', 9000.00, 161.00, NULL, NULL, 1, 0.00, 0.00, '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+
+-- ----------------------------
+-- Table structure for rental_audit
+-- ----------------------------
+DROP TABLE IF EXISTS `rental_audit`;
+CREATE TABLE `rental_audit`  (
+  `AuditID` int(11) NOT NULL AUTO_INCREMENT,
+  `RentalID` int(11) NOT NULL,
+  `RentalDate` date NOT NULL,
+  `ExpectedReturnDate` date NULL DEFAULT NULL,
+  `ActualReturnDate` date NULL DEFAULT NULL,
+  `TotalNetAmount` decimal(8, 2) NULL DEFAULT NULL,
+  `TotalVAT` decimal(7, 2) NULL DEFAULT NULL,
+  `TotalGrossAmount` decimal(8, 2) NULL DEFAULT NULL,
+  `DiscountApplied` decimal(7, 2) NULL DEFAULT NULL,
+  `Fine` decimal(7, 2) NULL DEFAULT NULL,
+  `ChangeType` enum('INSERT','UPDATE','DELETE') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `ChangedBy` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `ChangeTimestamp` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`AuditID`) USING BTREE,
+  INDEX `idx_rental_audit_rental`(`RentalID` ASC) USING BTREE,
+  INDEX `idx_rental_audit_timestamp`(`ChangeTimestamp` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of rental_audit
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for rentalamenity
@@ -629,6 +765,8 @@ CREATE TABLE `rentalcar`  (
   `RentalDuration` smallint(4) UNSIGNED NOT NULL,
   PRIMARY KEY (`RentalID`, `CarID`) USING BTREE,
   INDEX `FK_RentalCar_Car`(`CarID` ASC) USING BTREE,
+  INDEX `idx_rentalcar_rental`(`RentalID` ASC) USING BTREE,
+  INDEX `idx_rentalcar_car`(`CarID` ASC) USING BTREE,
   CONSTRAINT `FK_RentalCar_Car` FOREIGN KEY (`CarID`) REFERENCES `car` (`CarID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `FK_RentalCar_Rental` FOREIGN KEY (`RentalID`) REFERENCES `rental` (`RentalID`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
@@ -639,6 +777,26 @@ CREATE TABLE `rentalcar`  (
 INSERT INTO `rentalcar` VALUES (1, 1, 150.00, 0.00, 3);
 INSERT INTO `rentalcar` VALUES (2, 14, 110.00, 0.00, 16);
 INSERT INTO `rentalcar` VALUES (3, 15, 140.00, 0.00, 4);
+
+-- ----------------------------
+-- Table structure for rentalcar_audit
+-- ----------------------------
+DROP TABLE IF EXISTS `rentalcar_audit`;
+CREATE TABLE `rentalcar_audit`  (
+  `AuditID` int(11) NOT NULL AUTO_INCREMENT,
+  `RentalID` int(11) NOT NULL,
+  `CarID` int(11) NOT NULL,
+  `DailyRateApplied` decimal(6, 2) NULL DEFAULT NULL,
+  `RentalDuration` smallint(5) UNSIGNED NOT NULL,
+  `ChangeType` enum('INSERT','UPDATE','DELETE') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
+  `ChangedBy` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `ChangeTimestamp` timestamp NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`AuditID`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of rentalcar_audit
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for rentalcustomer
@@ -895,7 +1053,7 @@ CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_ActiveReservations` AS
 -- View structure for v_AvailableCars
 -- ----------------------------
 DROP VIEW IF EXISTS `v_AvailableCars`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_AvailableCars` AS select `c`.`CarID` AS `CarID`,`c`.`LicensePlateNumber` AS `LicensePlateNumber`,`m`.`MakeName` AS `Make`,`c`.`Model` AS `Model`,`c`.`Year` AS `Year`,`c`.`Color` AS `Color`,`c`.`DailyRate` AS `DailyRate`,`vt`.`Category` AS `VehicleCategory`,`vt`.`TransmissionType` AS `TransmissionType`,group_concat(distinct `f`.`FeatureName` separator ', ') AS `Features`,group_concat(distinct `a`.`AmenityName` separator ', ') AS `Amenities` from ((((((`car` `c` join `vehicletype` `vt` on(`c`.`VehicleTypeID` = `vt`.`VehicleTypeID`)) left join `make` `m` on(`c`.`MakeID` = `m`.`MakeID`)) left join `carfeature` `cf` on(`c`.`CarID` = `cf`.`CarID`)) left join `feature` `f` on(`cf`.`FeatureID` = `f`.`FeatureID`)) left join `caramenity` `ca` on(`c`.`CarID` = `ca`.`CarID`)) left join `amenity` `a` on(`ca`.`AmenityID` = `a`.`AmenityID`)) where `c`.`CarStatus` = 'Available' group by `c`.`CarID`,`c`.`LicensePlateNumber`,`m`.`MakeName`,`c`.`Model`,`c`.`Year`,`c`.`Color`,`c`.`DailyRate`,`vt`.`Category`,`vt`.`TransmissionType`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_AvailableCars` AS select `c`.`CarID` AS `CarID`,`c`.`LicensePlateNumber` AS `LicensePlateNumber`,`m`.`MakeName` AS `Make`,`c`.`Model` AS `Model`,`c`.`Year` AS `Year`,`c`.`Color` AS `Color`,`c`.`DailyRate` AS `DailyRate`,`vc`.`CategoryName` AS `VehicleCategory`,`t`.`TransmissionTypeName` AS `TransmissionType`,group_concat(distinct `f`.`FeatureName` separator ', ') AS `Features`,group_concat(distinct `a`.`AmenityName` separator ', ') AS `Amenities` from ((((((((`car` `c` join `vehicletype` `vt` on(`c`.`VehicleTypeID` = `vt`.`VehicleTypeID`)) join `vehiclecategory` `vc` on(`vc`.`CategoryID` = `vt`.`CategoryID`)) join `transmissiontype` `t` on(`t`.`TransmissionTypeID` = `vt`.`TransmissionTypeID`)) left join `make` `m` on(`c`.`MakeID` = `m`.`MakeID`)) left join `carfeature` `cf` on(`c`.`CarID` = `cf`.`CarID`)) left join `feature` `f` on(`cf`.`FeatureID` = `f`.`FeatureID`)) left join `caramenity` `ca` on(`c`.`CarID` = `ca`.`CarID`)) left join `amenity` `a` on(`ca`.`AmenityID` = `a`.`AmenityID`)) where `c`.`CarStatus` = 'Available' group by `c`.`CarID`,`c`.`LicensePlateNumber`,`m`.`MakeName`,`c`.`Model`,`c`.`Year`,`c`.`Color`,`c`.`DailyRate`,`vc`.`CategoryName`,`t`.`TransmissionTypeName`;
 
 -- ----------------------------
 -- View structure for v_CarUtilityStats
@@ -914,6 +1072,12 @@ CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_EmployeeCountByRoles` 
 -- ----------------------------
 DROP VIEW IF EXISTS `v_EmployeeInfoWithAccountStatus`;
 CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_EmployeeInfoWithAccountStatus` AS select `e`.`EmployeeID` AS `EmployeeID`,`e`.`FirstName` AS `FirstName`,`e`.`LastName` AS `LastName`,`e`.`Email` AS `Email`,`e`.`PhoneNumber` AS `PhoneNumber`,`r`.`RoleName` AS `RoleName`,`e`.`AccountStatus` AS `AccountStatus` from ((`employee` `e` join `employeerole` `er` on(`e`.`EmployeeID` = `er`.`EmployeeID`)) join `role` `r` on(`r`.`RoleID` = `er`.`RoleID`)) order by `e`.`AccountStatus`;
+
+-- ----------------------------
+-- View structure for v_InvoiceSummaryByCustomer
+-- ----------------------------
+DROP VIEW IF EXISTS `v_InvoiceSummaryByCustomer`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_InvoiceSummaryByCustomer` AS select `invoice`.`CustomerID` AS `CustomerID`,count(`invoice`.`InvoiceID`) AS `TotalInvoices`,sum(case when `invoice`.`InvoiceStatus` = 'Paid' then `invoice`.`TotalGrossAmount` else 0 end) AS `TotalPaid`,sum(case when `invoice`.`InvoiceStatus` = 'Unpaid' then `invoice`.`TotalGrossAmount` else 0 end) AS `TotalUnpaid`,sum(case when `invoice`.`DueDate` < curdate() and `invoice`.`InvoiceStatus` = 'Unpaid' then `invoice`.`TotalGrossAmount` else 0 end) AS `OverdueAmount` from `invoice` group by `invoice`.`CustomerID`;
 
 -- ----------------------------
 -- View structure for v_PopularCars
