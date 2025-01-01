@@ -984,6 +984,125 @@ END
 delimiter ;
 
 -- ----------------------------
+-- Procedure structure for GenerateInvoiceWithAddresses
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `GenerateInvoiceWithAddresses`;
+delimiter ;;
+CREATE DEFINER=`huza_martyna`@`%` PROCEDURE `GenerateInvoiceWithAddresses`(
+  IN input_RentalID INT UNSIGNED,
+  IN input_VATRate DECIMAL(5, 2),
+  IN input_InvoiceStatus VARCHAR(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci, # Paid or Unpaid but enum is not allowed so varchar it 
+  IN input_CompanyName VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci,
+  IN input_CompanyAddressLine1 VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci,
+  IN input_CompanyAddressLine2 VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci,
+  IN input_CompanyCity VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci,
+  IN input_CompanyState VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci,
+  IN input_CompanyPostalCode VARCHAR(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci,
+  IN input_CompanyCountry VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci,
+  IN input_CustomerID INT UNSIGNED,
+  IN input_CustomerAddressLine1 VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci,
+  IN input_CustomerAddressLine2 VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci,
+  IN input_CustomerCity VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci,
+  IN input_CustomerState VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci,
+  IN input_CustomerPostalCode VARCHAR(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci,
+  IN input_CustomerCountry VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci
+)
+BEGIN
+  DECLARE new_InvoiceID INT UNSIGNED;
+  DECLARE invoice_total_net DECIMAL(8, 2) DEFAULT 0.00;
+  DECLARE invoice_total_vat DECIMAL(7, 2) DEFAULT 0.00;
+  DECLARE invoice_total_gross DECIMAL(8, 2) DEFAULT 0.00;
+
+  # Validate InvoiceStatus input
+  IF input_InvoiceStatus NOT IN ('Paid', 'Unpaid') THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Invalid InvoiceStatus value. Must be "Paid" or "Unpaid".';
+  END IF;
+
+  # Create the invoice
+  INSERT INTO invoice (
+    CompanyName, CompanyAddressLine1, CompanyAddressLine2, 
+    CompanyCity, CompanyState, CompanyPostalCode, CompanyCountry,
+    CustomerName, CustomerAddressLine1, CustomerAddressLine2, 
+    CustomerCity, CustomerState, CustomerPostalCode, CustomerCountry,
+    CustomerID, IssueDate, DueDate, InvoiceStatus
+  )
+  SELECT 
+    input_CompanyName, input_CompanyAddressLine1, input_CompanyAddressLine2,
+    input_CompanyCity, input_CompanyState, input_CompanyPostalCode, input_CompanyCountry,
+    CONCAT(c.FirstName, ' ', c.LastName) AS CustomerName,
+    input_CustomerAddressLine1, input_CustomerAddressLine2,
+    input_CustomerCity, input_CustomerState, input_CustomerPostalCode, input_CustomerCountry,
+    input_CustomerID,
+    CURDATE(),
+    DATE_ADD(CURDATE(), INTERVAL 7 DAY), # Default payment deadline: 7 days
+    input_InvoiceStatus
+  FROM customer c
+  WHERE c.CustomerID = input_CustomerID;
+
+  # Get the newly inserted InvoiceID to use later with the invoicePosition
+  SELECT InvoiceID
+  INTO new_InvoiceID
+  FROM invoice
+  WHERE CustomerID = input_CustomerID
+    AND IssueDate = CURDATE()
+    AND DueDate = DATE_ADD(CURDATE(), INTERVAL 7 DAY)
+    AND InvoiceStatus = input_InvoiceStatus
+    AND InvoiceID = LAST_INSERT_ID(); # This will work. Why? Cuz it's for a given session (no need to worry about the other users) and since the last insert was into an invoice table (the insert above) we will get the last invoice ID
+
+
+  # Insert cars into invoicePosition
+  INSERT INTO invoiceposition (
+    InvoiceID, ProductType, ProductReferenceID,
+    Quantity, UnitNetPrice, VATRate
+  )
+  SELECT
+    new_InvoiceID,
+    'Car' AS ProductType,
+    rc.CarID AS ProductReferenceID,
+    rc.RentalDuration AS Quantity,
+    rc.DailyRateApplied AS UnitNetPrice,
+    input_VATRate
+  FROM rentalcar rc
+  WHERE rc.RentalID = input_RentalID;
+
+  # Insert amenities into invoicePosition
+  INSERT INTO invoiceposition (
+    InvoiceID, ProductType, ProductReferenceID,
+    Quantity, UnitNetPrice, VATRate
+  )
+  SELECT
+    new_InvoiceID,
+    'Amenity' AS ProductType,
+    ra.AmenityID AS ProductReferenceID,
+    ra.Quantity AS Quantity,
+    ra.DailyRateApplied AS UnitNetPrice,
+    input_VATRate
+  FROM rentalamenity ra
+  WHERE ra.RentalID = input_RentalID;
+
+  # Calc totals for the invoice
+  SELECT 
+    SUM(NetAmount) AS TotalNet,
+    SUM(VATAmount) AS TotalVAT,
+    SUM(GrossAmount) AS TotalGross
+  INTO 
+    invoice_total_net, invoice_total_vat, invoice_total_gross
+  FROM invoiceposition
+  WHERE InvoiceID = new_InvoiceID;
+
+  # Update invoice with totals
+  UPDATE invoice
+  SET 
+    TotalNetAmount = invoice_total_net,
+    TotalVAT = invoice_total_vat,
+    TotalGrossAmount = invoice_total_gross
+  WHERE InvoiceID = new_InvoiceID;
+END
+;;
+delimiter ;
+
+-- ----------------------------
 -- Procedure structure for UpdateInvoiceStatus
 -- ----------------------------
 DROP PROCEDURE IF EXISTS `UpdateInvoiceStatus`;
