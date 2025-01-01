@@ -11,7 +11,7 @@
  Target Server Version : 110601 (11.6.1-MariaDB)
  File Encoding         : 65001
 
- Date: 13/12/2024 21:20:57
+ Date: 24/12/2024 21:40:34
 */
 
 SET NAMES utf8mb4;
@@ -417,7 +417,7 @@ CREATE TABLE `invoice`  (
   INDEX `FK_Invoice_Employee`(`EmployeeID` ASC) USING BTREE,
   CONSTRAINT `FK_Invoice_Customer` FOREIGN KEY (`CustomerID`) REFERENCES `customer` (`CustomerID`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `FK_Invoice_Employee` FOREIGN KEY (`EmployeeID`) REFERENCES `employee` (`EmployeeID`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of invoice
@@ -425,29 +425,34 @@ CREATE TABLE `invoice`  (
 INSERT INTO `invoice` VALUES (1, '', '', NULL, '', NULL, '', '', '', '', NULL, '', NULL, '', '', '2024-11-07', '2024-11-08', 0.00, 0.00, 0.00, 'Paid', 5, NULL, '6871947504');
 INSERT INTO `invoice` VALUES (2, '', '', NULL, '', NULL, '', '', '', '', NULL, '', NULL, '', '', '2024-11-07', '2024-11-07', 0.00, 0.00, 0.00, 'Paid', 3, NULL, '8850210863');
 INSERT INTO `invoice` VALUES (3, '', '', NULL, '', NULL, '', '', '', '', NULL, '', NULL, '', '', '2024-11-08', '2024-11-08', 0.00, 0.00, 0.00, 'Paid', 1, NULL, '8850212024');
+INSERT INTO `invoice` VALUES (12, 'Company XYZ', '123 Street Name', NULL, 'Cracow', 'State', '12345', 'Poland', 'Rico Lemański', '456 Another St', 'Apt 101', 'Cracow', 'CustomerState', '67890', 'Poland', '2024-12-24', '2024-12-31', 0.00, 0.00, 0.00, 'Unpaid', 2, NULL, NULL);
+INSERT INTO `invoice` VALUES (13, 'Company XYZ', '123 Street Name', NULL, 'Cracow', 'State', '12345', 'Poland', 'Rico Lemański', '456 Another St', 'Apt 101', 'Cracow', 'CustomerState', '67890', 'Poland', '2024-12-24', '2024-12-31', 560.00, 128.80, 688.80, 'Unpaid', 2, NULL, NULL);
 
 -- ----------------------------
 -- Table structure for invoiceposition
 -- ----------------------------
 DROP TABLE IF EXISTS `invoiceposition`;
 CREATE TABLE `invoiceposition`  (
-  `InvoicePositionID` int(11) NOT NULL AUTO_INCREMENT,
+  `InvoicePositionID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `InvoiceID` int(10) UNSIGNED NOT NULL,
-  `Description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NOT NULL,
-  `Quantity` int(11) NOT NULL,
-  `UnitNetPrice` decimal(8, 2) NOT NULL,
-  `NetAmount` decimal(8, 2) GENERATED ALWAYS AS (`Quantity` * `UnitNetPrice`) PERSISTENT,
-  `VATRate` decimal(7, 2) NOT NULL,
-  `VATAmount` decimal(7, 2) GENERATED ALWAYS AS (`NetAmount` * `VATRate` / 100) PERSISTENT,
-  `GrossAmount` decimal(8, 2) GENERATED ALWAYS AS (`NetAmount` + `VATAmount`) PERSISTENT,
+  `ProductType` enum('Car','Amenity') CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci NULL DEFAULT NULL,
+  `ProductReferenceID` int(10) UNSIGNED NOT NULL,
+  `Quantity` smallint(5) UNSIGNED NOT NULL DEFAULT 1,
+  `UnitNetPrice` decimal(10, 2) NOT NULL,
+  `NetAmount` decimal(10, 2) GENERATED ALWAYS AS (`Quantity` * `UnitNetPrice`) PERSISTENT,
+  `VATRate` decimal(5, 2) NOT NULL,
+  `VATAmount` decimal(10, 2) GENERATED ALWAYS AS (`NetAmount` * `VATRate` / 100) PERSISTENT,
+  `GrossAmount` decimal(10, 2) GENERATED ALWAYS AS (`NetAmount` + `VATAmount`) PERSISTENT,
   PRIMARY KEY (`InvoicePositionID`) USING BTREE,
-  INDEX `FK_InvoicePosition_Invoice`(`InvoiceID` ASC) USING BTREE,
-  CONSTRAINT `FK_InvoicePosition_Invoice` FOREIGN KEY (`InvoiceID`) REFERENCES `invoice` (`InvoiceID`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_uca1400_ai_ci ROW_FORMAT = Dynamic;
+  INDEX `InvoiceID`(`InvoiceID` ASC) USING BTREE,
+  CONSTRAINT `invoiceposition_ibfk_1` FOREIGN KEY (`InvoiceID`) REFERENCES `invoice` (`InvoiceID`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `CONSTRAINT_1` CHECK (`Quantity` > 0)
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of invoiceposition
 -- ----------------------------
+INSERT INTO `invoiceposition` VALUES (1, 13, 'Car', 15, 4, 140.00, DEFAULT, 23.00, DEFAULT, DEFAULT);
 
 -- ----------------------------
 -- Table structure for maintenance
@@ -591,7 +596,26 @@ CREATE TABLE `rental`  (
 -- ----------------------------
 INSERT INTO `rental` VALUES (1, '2024-09-05', '2024-09-07', '2024-09-07', 450.00, 103.50, 553.50, 1, 4, 0.00, 0.00);
 INSERT INTO `rental` VALUES (2, '2024-01-15', '2024-01-30', '2024-01-30', 1650.00, 379.50, 2029.50, 2, 5, 0.00, 0.00);
-INSERT INTO `rental` VALUES (3, '2024-11-04', '2024-11-08', '2024-11-08', 9000.00, 161.00, NULL, 3, 1, 0.00, 0.00);
+INSERT INTO `rental` VALUES (3, '2024-11-04', '2024-11-08', '2024-11-08', 9000.00, 161.00, NULL, NULL, 1, 0.00, 0.00);
+
+-- ----------------------------
+-- Table structure for rentalamenity
+-- ----------------------------
+DROP TABLE IF EXISTS `rentalamenity`;
+CREATE TABLE `rentalamenity`  (
+  `RentalID` int(10) UNSIGNED NOT NULL,
+  `AmenityID` smallint(5) UNSIGNED NOT NULL,
+  `Quantity` smallint(5) UNSIGNED NOT NULL DEFAULT 1,
+  `DailyRateApplied` decimal(7, 2) NOT NULL,
+  PRIMARY KEY (`RentalID`, `AmenityID`) USING BTREE,
+  INDEX `AmenityID`(`AmenityID` ASC) USING BTREE,
+  CONSTRAINT `rentalamenity_ibfk_1` FOREIGN KEY (`RentalID`) REFERENCES `rental` (`RentalID`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `rentalamenity_ibfk_2` FOREIGN KEY (`AmenityID`) REFERENCES `amenity` (`AmenityID`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of rentalamenity
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for rentalcar
@@ -658,6 +682,24 @@ INSERT INTO `reservation` VALUES (2, '2024-11-07 00:00:00', '2024-12-01', '2024-
 INSERT INTO `reservation` VALUES (3, '2024-11-07 00:00:00', '2024-11-11', '2024-11-13', 'Active', 4);
 INSERT INTO `reservation` VALUES (4, '2024-09-02 00:00:00', '2024-09-05', '2024-09-07', 'Completed', 5);
 INSERT INTO `reservation` VALUES (5, '2024-01-01 00:00:00', '2025-01-15', '2025-01-30', 'Completed', 3);
+
+-- ----------------------------
+-- Table structure for reservationamenity
+-- ----------------------------
+DROP TABLE IF EXISTS `reservationamenity`;
+CREATE TABLE `reservationamenity`  (
+  `ReservationID` int(10) UNSIGNED NOT NULL,
+  `AmenityID` smallint(5) UNSIGNED NOT NULL,
+  `Quantity` smallint(5) UNSIGNED NOT NULL DEFAULT 1,
+  PRIMARY KEY (`ReservationID`, `AmenityID`) USING BTREE,
+  INDEX `AmenityID`(`AmenityID` ASC) USING BTREE,
+  CONSTRAINT `reservationamenity_ibfk_1` FOREIGN KEY (`ReservationID`) REFERENCES `reservation` (`ReservationID`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `reservationamenity_ibfk_2` FOREIGN KEY (`AmenityID`) REFERENCES `amenity` (`AmenityID`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of reservationamenity
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for reservationcar
@@ -860,6 +902,18 @@ CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_AvailableCars` AS sele
 -- ----------------------------
 DROP VIEW IF EXISTS `v_CarUtilityStats`;
 CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_CarUtilityStats` AS select `car`.`CarID` AS `CarID`,`car`.`LicensePlateNumber` AS `LicensePlateNumber`,`m`.`MakeName` AS `Make`,`car`.`Model` AS `Model`,sum(`rc`.`RentalDuration`) AS `TotalRentalDays`,sum(`rc`.`DailyRateApplied` * `rc`.`RentalDuration`) AS `TotalRevenue` from ((`car` left join `make` `m` on(`car`.`MakeID` = `m`.`MakeID`)) left join `rentalcar` `rc` on(`car`.`CarID` = `rc`.`CarID`)) group by `car`.`CarID`,`car`.`LicensePlateNumber`,`m`.`MakeName`,`car`.`Model`;
+
+-- ----------------------------
+-- View structure for v_EmployeeCountByRoles
+-- ----------------------------
+DROP VIEW IF EXISTS `v_EmployeeCountByRoles`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_EmployeeCountByRoles` AS select `r`.`RoleName` AS `RoleName`,count(distinct `e`.`EmployeeID`) AS `employee_count` from ((`employee` `e` join `employeerole` `er` on(`e`.`EmployeeID` = `er`.`EmployeeID`)) join `role` `r` on(`r`.`RoleID` = `er`.`RoleID`)) group by `r`.`RoleName` order by count(distinct `e`.`EmployeeID`) desc;
+
+-- ----------------------------
+-- View structure for v_EmployeeInfoWithAccountStatus
+-- ----------------------------
+DROP VIEW IF EXISTS `v_EmployeeInfoWithAccountStatus`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_EmployeeInfoWithAccountStatus` AS select `e`.`EmployeeID` AS `EmployeeID`,`e`.`FirstName` AS `FirstName`,`e`.`LastName` AS `LastName`,`e`.`Email` AS `Email`,`e`.`PhoneNumber` AS `PhoneNumber`,`r`.`RoleName` AS `RoleName`,`e`.`AccountStatus` AS `AccountStatus` from ((`employee` `e` join `employeerole` `er` on(`e`.`EmployeeID` = `er`.`EmployeeID`)) join `role` `r` on(`r`.`RoleID` = `er`.`RoleID`)) order by `e`.`AccountStatus`;
 
 -- ----------------------------
 -- View structure for v_PopularCars
