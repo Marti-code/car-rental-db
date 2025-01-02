@@ -11,7 +11,7 @@
  Target Server Version : 110601 (11.6.1-MariaDB)
  File Encoding         : 65001
 
- Date: 25/12/2024 13:02:33
+ Date: 02/01/2025 12:40:24
 */
 
 SET NAMES utf8mb4;
@@ -331,7 +331,7 @@ INSERT INTO `employee` VALUES (11, 'Jacek', 'Pawlak', 'jacek.pawlak@example.com'
 INSERT INTO `employee` VALUES (12, 'Dorota', 'Mazur', 'dorota.mazur@example.com', '512 345 678', NULL, NULL, 'Aktywne', 'Dorotka#456', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
 INSERT INTO `employee` VALUES (13, 'Łukasz', 'Zając', 'lukasz.zajac@example.com', '513 456 789', NULL, NULL, 'Aktywne', 'Lukasz@789', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
 INSERT INTO `employee` VALUES (14, 'Ewa', 'Pietrzak', 'ewa.pietrzak@example.com', '514 567 890', NULL, NULL, 'Aktywne', 'Ewa%2025', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
-INSERT INTO `employee` VALUES (15, 'Bartek', 'Górski', 'bartek.gorski@example.com', '515 678 901', NULL, NULL, 'Aktywne', 'Gorski$998', '2024-12-25 11:47:09', '2024-12-25 11:47:09');
+INSERT INTO `employee` VALUES (15, 'Bartek', 'Górski', 'bartek.gorski@example.com', '515 678 901', NULL, NULL, 'Aktywne', 'Gorski$9989', '2024-12-25 11:47:09', '2025-01-01 14:32:31');
 
 -- ----------------------------
 -- Table structure for employee_audit
@@ -1056,6 +1056,12 @@ DROP VIEW IF EXISTS `v_AvailableCars`;
 CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_AvailableCars` AS select `c`.`CarID` AS `CarID`,`c`.`LicensePlateNumber` AS `LicensePlateNumber`,`m`.`MakeName` AS `Make`,`c`.`Model` AS `Model`,`c`.`Year` AS `Year`,`c`.`Color` AS `Color`,`c`.`DailyRate` AS `DailyRate`,`vc`.`CategoryName` AS `VehicleCategory`,`t`.`TransmissionTypeName` AS `TransmissionType`,group_concat(distinct `f`.`FeatureName` separator ', ') AS `Features`,group_concat(distinct `a`.`AmenityName` separator ', ') AS `Amenities` from ((((((((`car` `c` join `vehicletype` `vt` on(`c`.`VehicleTypeID` = `vt`.`VehicleTypeID`)) join `vehiclecategory` `vc` on(`vc`.`CategoryID` = `vt`.`CategoryID`)) join `transmissiontype` `t` on(`t`.`TransmissionTypeID` = `vt`.`TransmissionTypeID`)) left join `make` `m` on(`c`.`MakeID` = `m`.`MakeID`)) left join `carfeature` `cf` on(`c`.`CarID` = `cf`.`CarID`)) left join `feature` `f` on(`cf`.`FeatureID` = `f`.`FeatureID`)) left join `caramenity` `ca` on(`c`.`CarID` = `ca`.`CarID`)) left join `amenity` `a` on(`ca`.`AmenityID` = `a`.`AmenityID`)) where `c`.`CarStatus` = 'Available' group by `c`.`CarID`,`c`.`LicensePlateNumber`,`m`.`MakeName`,`c`.`Model`,`c`.`Year`,`c`.`Color`,`c`.`DailyRate`,`vc`.`CategoryName`,`t`.`TransmissionTypeName`;
 
 -- ----------------------------
+-- View structure for v_CarsCountRentedByMonth
+-- ----------------------------
+DROP VIEW IF EXISTS `v_CarsCountRentedByMonth`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_CarsCountRentedByMonth` AS select year(`r`.`RentalDate`) AS `RentalYear`,month(`r`.`RentalDate`) AS `RentalMonth`,count(distinct `rc`.`CarID`) AS `CarsRented` from (`rental` `r` join `rentalcar` `rc` on(`r`.`RentalID` = `rc`.`RentalID`)) group by year(`r`.`RentalDate`),month(`r`.`RentalDate`) order by year(`r`.`RentalDate`) desc,month(`r`.`RentalDate`) desc;
+
+-- ----------------------------
 -- View structure for v_CarUtilityStats
 -- ----------------------------
 DROP VIEW IF EXISTS `v_CarUtilityStats`;
@@ -1090,6 +1096,12 @@ CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_PopularCars` AS select
 -- ----------------------------
 DROP VIEW IF EXISTS `v_RevenueByMonth`;
 CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_RevenueByMonth` AS select year(`r`.`RentalDate`) AS `Year`,month(`r`.`RentalDate`) AS `Month`,sum(`r`.`TotalGrossAmount`) AS `TotalRevenue` from `rental` `r` group by year(`r`.`RentalDate`),month(`r`.`RentalDate`) order by year(`r`.`RentalDate`) desc,month(`r`.`RentalDate`) desc;
+
+-- ----------------------------
+-- View structure for v_UpcomingMaintenance
+-- ----------------------------
+DROP VIEW IF EXISTS `v_UpcomingMaintenance`;
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `v_UpcomingMaintenance` AS select `m`.`MaintenanceID` AS `MaintenanceID`,`c`.`CarID` AS `CarID`,`c`.`LicensePlateNumber` AS `LicensePlateNumber`,`m`.`MaintenanceDate` AS `MaintenanceDate`,`m`.`Description` AS `Description`,`m`.`EmployeeID` AS `EmployeeID`,`e`.`FirstName` AS `EmployeeFirstName`,`e`.`LastName` AS `EmployeeLastName` from ((`maintenance` `m` join `car` `c` on(`m`.`CarID` = `c`.`CarID`)) left join `employee` `e` on(`m`.`EmployeeID` = `e`.`EmployeeID`)) where `m`.`MaintenanceDate` >= curdate() order by `m`.`MaintenanceDate`;
 
 -- ----------------------------
 -- View structure for v_UpcomingReservations
@@ -1284,6 +1296,20 @@ BEGIN
   ELSEIF total_payments > 0 THEN
     UPDATE invoice SET InvoiceStatus = 'Unpaid' WHERE InvoiceID = p_invoice_id;
   END IF;
+END
+;;
+delimiter ;
+
+-- ----------------------------
+-- Triggers structure for table employee
+-- ----------------------------
+DROP TRIGGER IF EXISTS `employee_password_update`;
+delimiter ;;
+CREATE TRIGGER `employee_password_update` BEFORE UPDATE ON `employee` FOR EACH ROW BEGIN
+  IF NEW.PasswordHash = OLD.PasswordHash THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Nowe hasło nie może być takie same jak stare hasło.';
+    END IF;
 END
 ;;
 delimiter ;
