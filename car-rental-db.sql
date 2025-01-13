@@ -11,7 +11,7 @@
  Target Server Version : 110601 (11.6.1-MariaDB)
  File Encoding         : 65001
 
- Date: 02/01/2025 12:40:24
+ Date: 13/01/2025 19:09:06
 */
 
 SET NAMES utf8mb4;
@@ -1274,6 +1274,81 @@ BEGIN
     TotalVAT = invoice_total_vat,
     TotalGrossAmount = invoice_total_gross
   WHERE InvoiceID = new_InvoiceID;
+END
+;;
+delimiter ;
+
+-- ----------------------------
+-- Function structure for IsCarAvailable
+-- ----------------------------
+DROP FUNCTION IF EXISTS `IsCarAvailable`;
+delimiter ;;
+CREATE DEFINER=`huza_martyna`@`%` FUNCTION `IsCarAvailable`(input_CarID INT,
+    input_StartDate DATE,
+    input_EndDate DATE
+) RETURNS varchar(20) CHARSET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci
+    DETERMINISTIC
+BEGIN
+    DECLARE rental_conflict INT DEFAULT 0;
+    DECLARE reservation_conflict INT DEFAULT 0;
+    DECLARE car_exists INT DEFAULT 0;
+
+    SELECT COUNT(*)
+    INTO car_exists
+    FROM car
+    WHERE CarID = input_CarID;
+
+    IF car_exists = 0 THEN
+        RETURN 'Car Not Found';
+    END IF;
+
+    SELECT COUNT(*)
+    INTO rental_conflict
+    FROM rental r
+    JOIN rentalcar rc ON r.RentalID = rc.RentalID
+    WHERE rc.CarID = input_CarID
+      AND (
+            (input_StartDate BETWEEN r.RentalDate AND COALESCE(r.ActualReturnDate, r.ExpectedReturnDate)) OR
+            (input_EndDate BETWEEN r.RentalDate AND COALESCE(r.ActualReturnDate, r.ExpectedReturnDate)) OR
+            (r.RentalDate BETWEEN input_StartDate AND input_EndDate)
+          );
+
+    SELECT COUNT(*)
+    INTO reservation_conflict
+    FROM reservation res
+    JOIN reservationcar rc ON res.ReservationID = rc.ReservationID
+    WHERE rc.CarID = input_CarID
+      AND res.ReservationStatus = 'Active'
+      AND (
+            (input_StartDate BETWEEN res.PickupDate AND res.ReturnDate) OR
+            (input_EndDate BETWEEN res.PickupDate AND res.ReturnDate) OR
+            (res.PickupDate BETWEEN input_StartDate AND input_EndDate)
+          );
+
+    IF rental_conflict > 0 OR reservation_conflict > 0 THEN
+        RETURN 'Not Available';
+    ELSE
+        RETURN 'Available';
+    END IF;
+END
+;;
+delimiter ;
+
+-- ----------------------------
+-- Procedure structure for SettlePayment
+-- ----------------------------
+DROP PROCEDURE IF EXISTS `SettlePayment`;
+delimiter ;;
+CREATE DEFINER=`huza_martyna`@`%` PROCEDURE `SettlePayment`(
+    IN input_InvoiceID INT UNSIGNED,
+    IN input_Amount DECIMAL(8, 2),
+    IN input_PaymentMethodID TINYINT UNSIGNED
+)
+BEGIN
+    INSERT INTO payment (PaymentDate, Amount, PaymentStatus, InvoiceID, PaymentMethodID)
+    VALUES (CURDATE(), input_Amount, 'Completed', input_InvoiceID, input_PaymentMethodID);
+
+    CALL UpdateInvoiceStatus(input_InvoiceID);
 END
 ;;
 delimiter ;
