@@ -1408,4 +1408,187 @@ END
 ;;
 delimiter ;
 
+-- ----------------------------
+-- Procedure structure for AddReservation
+-- ----------------------------
+CREATE PROCEDURE `AddReservation`(
+  IN vPickupDate DATE,
+  IN vReturnDate DATE,
+  IN vCustomerID INT ( 10 ),
+  IN vCarID INT ( 10 ))
+BEGIN
+  DECLARE
+    x INT ( 10 );
+    
+   if IsCarAvailable(vCarID, vPickupDate, vReturnDate) = "Not Available" then
+  signal SQLSTATE '45000' set message_text = "Selected car is not avaiable in selected";
+  
+  end if;
+    
+  IF
+    ( CHAR_LENGTH( vPickupDate )> 0 AND CHAR_LENGTH( vReturnDate )> 0 AND CHAR_LENGTH( vCustomerID )> 0 AND CHAR_LENGTH( vCarID )> 0 ) THEN
+      INSERT INTO reservation ( ReservationID, PickupDate, ReturnDate, ReservationStatus, CustomerID )
+      VALUES
+        ( DEFAULT, vPickupDate, vReturnDate, "Active", vCustomerID );
+      
+      SET x = ( SELECT MAX( ReservationID ) FROM reservation );
+      INSERT INTO reservationcar ( ReservationID, CarID )
+      VALUES
+        ( x, vCarID );
+      
+    END IF;
+
+END
+
+-- ----------------------------
+-- Triggers structure for table car_audit
+-- ----------------------------
+BEGIN
+    INSERT INTO `car_audit` ( `CarID`, `LicensePlateNumber`, `VIN`, `MakeID`, `Model`, `Year`, `CarStatus`, `DailyRate`, `ChangeType`, `ChangedBy`, `ChangeTimestamp` )
+    VALUES
+      (
+        OLD.CarID,
+        OLD.LicensePlateNumber,
+        OLD.VIN,
+        OLD.MakeID,
+        OLD.Model,
+        OLD.YEAR,
+        OLD.CarStatus,
+        OLD.DailyRate,
+        'UPDATE',
+        USER (),
+        NOW() 
+      );
+  
+  END
+
+-- ----------------------------
+-- Triggers structure for table car_audit
+-- ----------------------------
+BEGIN
+    INSERT INTO `car_audit` ( `CarID`, `LicensePlateNumber`, `VIN`, `MakeID`, `Model`, `Year`, `CarStatus`, `DailyRate`, `ChangeType`, `ChangedBy`, `ChangeTimestamp` )
+    VALUES
+      (
+        OLD.CarID,
+        OLD.LicensePlateNumber,
+        OLD.VIN,
+        OLD.MakeID,
+        OLD.Model,
+        OLD.YEAR,
+        OLD.CarStatus,
+        OLD.DailyRate,
+        'DELETE',
+        USER (),
+        NOW() 
+      );
+  
+  END
+
+
+-- ----------------------------
+-- Procedure structure for ExtendRentalTime
+-- ----------------------------
+PROCEDURE `ExtendRentalTime`(IN vNewReturnDate DATE, IN vRentalID INT(10))
+BEGIN
+  DECLARE vCarID INT ( 10 );
+  DECLARE vDailyRate DECIMAL ( 7, 2 );
+  DECLARE vRentalDate DATE;
+  DECLARE vRentalDuration SMALLINT ( 4 );
+  DECLARE vTotalNetAmount DECIMAL ( 8, 2 );
+  DECLARE vNewTotalNetAmount DECIMAL ( 8, 2 );
+  DECLARE vTotalGrossAmount DECIMAL ( 8, 2 );
+  DECLARE vVat DECIMAL ( 7, 2 );
+  DECLARE vDiscountApplied DECIMAL ( 7, 2 );
+  DECLARE vOldReturnDate DATE;
+  DECLARE vAddRentalDuration SMALLINT ( 4 );
+  SET vCarID = ( SELECT CarID FROM rentalcar WHERE RentalID = vRentalID );
+  SET vOldReturnDate = (
+  DATE_ADD((( SELECT ExpectedReturnDate FROM rental WHERE RentalID = vRentalID )+ 1 ), INTERVAL 1 DAY ));
+  IF
+    IsCarAvailable ( vCarID, vOldReturnDate, vNewReturnDate ) = "Not Available" THEN
+      SIGNAL SQLSTATE '45000' 
+      SET message_text = "This car is no longer avaiable in selected time";
+    END IF;
+  SET vRentalDate = (SELECT RentalDate FROM rental WHERE RentalID = vRentalID);
+  SET vDailyRate = (SELECT DailyRateApplied FROM rentalcar WHERE CarID = vCarID);
+  SET vRentalDuration = (DATEDIFF(vNewReturnDate, vRentalDate)+ 1);
+  SET vAddRentalDuration = (DATEDIFF( vNewReturnDate, vOldReturnDate)+1);
+  SET vDiscountApplied = (SELECT DiscountApplied FROM rentalcar WHERE RentalID = vRentalID);
+  SET vTotalNetAmount = (vDailyRate * vAddRentalDuration);
+  SET vVat = 0.23 * vTotalNetAmount; 
+  SET vNewTotalNetAmount = ((SELECT TotalNetAmount FROM rental WHERE RentalID = vRentalID) + vTotalNetAmount) 
+  SET vVat = ((SELECT TotalVAT FROM rental WHERE RentalID = vRentalID)+ 0.23 * vTotalNetAmount)  
+  SET vTotalGrossAmount = (vVat + vNewTotalNetAmount - vDiscountApplied); 
+  UPDATE rental 
+  SET ExpectedReturnDate = vNewReturnDate,
+  TotalNetAmount = vNewTotalNetAmount,
+  TotalVAT = vVat,
+  TotalGrossAmount = vTotalGrossAmount  WHERE RentalID = vRentalID;
+  UPDATE rentalcar 
+  SET RentalDuration = vRentalDuration WHERE RentalID = vRentalID;
+END
+
+
+-- ----------------------------
+-- Procedure structure for AddRental
+-- ----------------------------
+PROCEDURE `AddRental`(  IN vRentalDate DATE, IN vExpectedReturnDate DATE, IN vVat DECIMAL(7,2), IN vReservationID INT, IN vDailyRate DECIMAL(7,2))
+BEGIN
+  DECLARE vTotalGrossAmount DECIMAL(8,2);
+  DECLARE vDiscountApplied DECIMAL(7,2);
+  DECLARE vNetAmount DECIMAL(8,2);
+  DECLARE vRentalDuration SMALLINT(4);
+  DECLARE vRentalID INT (10);
+  DECLARE vCarID INT(10);  
+  IF vReservationID not in (SELECT ReservationID from reservationcar) THEN
+  SIGNAL SQLSTATE '45000' 
+  SET MESSAGE_TEXT = "Reservation doesn't exist";
+  ELSEIF (SELECT ReservationStatus from reservationcar WHERE ReservationID = vReservationID) != "Active" THEN
+  SIGNAL SQLSTATE '45000' 
+  SET MESSAGE_TEXT = "Reservation canceled or already completed";
+  END IF;
+  SET vCarID = (SELECT COALESCE(CarID, NULL) from reservationcar where ReservationID = vReservationID);
+  SET vRentalID = (SELECT COALESCE(MAX(RentalID), 0) + 1 FROM rental);
+  IF vDailyRate IS NULL THEN
+  SET vDailyRate = (SELECT DailyRate FROM car WHERE CarID = vCarID);
+  END IF;
+  SET vRentalDuration = (DATEDIFF(vExpectedReturnDate, vRentalDate) + 1);
+  SET vNetAmount = (vDailyRate * vRentalDuration);
+  SET vDiscountApplied = (SELECT CalculateDiscountAmount(vRentalDate, vExpectedReturnDate, vNetAmount));  
+  IF vVat is NULL THEN
+  Set vVat = 0.23 * vNetAmount;
+  end if;
+  SET vTotalGrossAmount = (vVat + vNetAmount - vDiscountApplied);
+  INSERT INTO rental (RentalID, RentalDate, ExpectedReturnDate, ActualReturnDate, TotalNetAmount, TotalVAT, TotalGrossAmount, InvoiceID, ReservationID, DiscountApplied
+  ) VALUES (vRentalID, vRentalDate, vExpectedReturnDate, NULL, vNetAmount, vVat, vTotalGrossAmount, NULL, vReservationID, vDiscountApplied);
+  INSERT INTO rentalcar (
+   RentalID, CarID, DailyRateApplied, DiscountApplied, RentalDuration) VALUES (vRentalID, vCarID, vDailyRate, vDiscountApplied, vRentalDuration);
+  UPDATE reservation SET ReservationStatus = "Completed" WHERE ReservationID = vReservationID;
+END
+
+
+-- ----------------------------
+-- Procedure structure for AddCustomer
+-- ----------------------------
+CREATE OR REPLACE PROCEDURE `AddCustomer`(IN vFirstName VARCHAR(40), IN vLastName VARCHAR(200), IN vDateOfBirth DATE, IN vDriverLicenseNumber VARCHAR(20), IN vDriverLicenseIssueDate DATE, IN vDriverLicenseExpiryDate DATE, IN vEmail VARCHAR(320), IN vPhoneNumber VARCHAR(15))
+BEGIN
+
+if (vDriverLicenseExpiryDate <= CURRENT_DATE)
+THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = "Cannot add user - Driver's license has already expired.";
+end if;
+
+if (vDateOfBirth <= CURRENT_DATE or TIMESTAMPDIFF(YEAR, vDateOfBirth, CURRENT_DATE) < 18)
+THEN 
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = "Cannot add user - Customer must be at least 18 years old.";
+end if;
+
+if (CHAR_LENGTH(vFirstName)>0 and CHAR_LENGTH(vLastName)>0 and CHAR_LENGTH(vDateOfBirth)>0 and CHAR_LENGTH(vDriverLicenseNumber)>0 and CHAR_LENGTH(vDriverLicenseIssueDate)>0 and CHAR_LENGTH(vDriverLicenseExpiryDate)>0) THEN
+INSERT into customer (FirstName, LastName, DateOfBirth, DriverLicenseNumber, DriverLicenseIssueDate, DriverLicenseExpiryDate, Email, PhoneNumber) VALUES (vFirstName, vLastName, vDateOfBirth, vDriverLicenseNumber, vDriverLicenseIssueDate, vDriverLicenseExpiryDate, vEmail, vPhoneNumber);
+end if;
+END
+
+
 SET FOREIGN_KEY_CHECKS = 1;
